@@ -1,0 +1,3 @@
+
+export const DELETE_ARTICLE = 'DELETE_ARTICLE';
+export const DAY_SELECTED = 'DAY_SELECTED';
