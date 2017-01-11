@@ -24151,7 +24151,10 @@
 	            args[_key] = arguments[_key];
 	        }
 	
-	        return _ret = (_temp = (_this = _possibleConstructorReturn(this, (_ref = SelectionBar.__proto__ || Object.getPrototypeOf(SelectionBar)).call.apply(_ref, [this].concat(args))), _this), _this.handleDayClick = function (ev, day) {
+	        return _ret = (_temp = (_this = _possibleConstructorReturn(this, (_ref = SelectionBar.__proto__ || Object.getPrototypeOf(SelectionBar)).call.apply(_ref, [this].concat(args))), _this), _this.state = {
+	            from: null,
+	            to: null
+	        }, _this.handleDayClick = function (ev, day) {
 	            _this.props.daySelection(day);
 	        }, _temp), _possibleConstructorReturn(_this, _ret);
 	    }
@@ -24624,11 +24627,12 @@
 	
 	            case _Constants.DAY_SELECTED:
 	
-	                var range = _reactDayPicker.DateUtils.addDayToRange(payload.day, state.range);
+	                var range = _reactDayPicker.DateUtils.addDayToRange(payload.day, state.selection.range);
 	
 	                return {
 	                    v: _fixtures.articles.filter(function (item) {
-	                        return new Date(Date.parse(item.date)) > range.from && state.selection.deletedArticles.indexOf(item.id) == -1;
+	                        var date = new Date(Date.parse(item.date));
+	                        return date >= range.from && (range.to ? date <= range.to : true) && state.selection.deletedArticles.indexOf(item.id) == -1;
 	                    })
 	                };
 	        }
@@ -24824,6 +24828,8 @@
 	
 	var _Constants = __webpack_require__(222);
 	
+	var _reactDayPicker = __webpack_require__(224);
+	
 	function selectionReducer(state, action) {
 	    var type = action.type,
 	        payload = action.payload;
@@ -24841,6 +24847,12 @@
 	                    from: state.from,
 	                    to: state.to
 	                }
+	            };
+	
+	        case _Constants.DAY_SELECTED:
+	            return {
+	                deletedArticles: state.deletedArticles,
+	                range: _reactDayPicker.DateUtils.addDayToRange(payload.day, state.range)
 	            };
 	    }
 	

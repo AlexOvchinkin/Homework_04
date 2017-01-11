@@ -1,4 +1,6 @@
 import {DELETE_ARTICLE} from '../Constants';
+import {DAY_SELECTED} from '../Constants';
+import {DateUtils} from 'react-day-picker';
 
 export default function selectionReducer( state, action) {
 
@@ -16,7 +18,13 @@ export default function selectionReducer( state, action) {
                     from: state.from,
                     to: state.to
                 }
-            }
+            };
+
+        case DAY_SELECTED:
+            return {
+                deletedArticles: state.deletedArticles,
+                range: DateUtils.addDayToRange(payload.day, state.range)
+            };
     }
 
     return state;

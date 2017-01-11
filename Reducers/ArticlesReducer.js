@@ -13,10 +13,12 @@ export default function (state, action) {
 
         case DAY_SELECTED:
 
-            const range = DateUtils.addDayToRange(payload.day, state.range);
+            const range = DateUtils.addDayToRange(payload.day, state.selection.range);
 
             return articles.filter(item => {
-                    return new Date(Date.parse(item.date)) > range.from
+                    const date = new Date(Date.parse(item.date));
+                    return date >= range.from
+                        && (range.to ? date <= range.to : true)
                         && ( state.selection.deletedArticles.indexOf(item.id) == -1 );
                 }
             );
