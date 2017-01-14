@@ -1,14 +1,9 @@
 import articlesReducer from './ArticlesReducer';
-import selectionReducer from './SelectionReducer';
+import datapickerReducer from './DatapickerReducer';
 
 export default function (state, action) {
     return {
-        articles: articlesReducer(
-            {
-                articles: state.articles,
-                selection: state.selection
-            },
-            action),
-        selection: selectionReducer(state.selection, action)
+        deletedArticles: articlesReducer(state.deletedArticles, action),
+        range: datapickerReducer(state.range, action)
     }
 }

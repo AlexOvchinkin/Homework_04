@@ -12,7 +12,7 @@ h2 {
 }
 
 .selection_bar {
-    height: 350px;
+    height: 400px;
     margin: 5px;
     border-radius: 5px;
     box-shadow: 0 0 10px 0 gray;
@@ -22,15 +22,16 @@ h2 {
     align-items: center;
 }
 
+.selection_bar a {
+    margin: 0;
+    color: gray;
+    font-style: italic;
+    font-size: 24px;
+}
+
 .selection {
     height: 40px;
     width: 300px;
-    border: 1px dashed black;
-}
-
-.data-picker {
-    height: 200px;
-    width: 200px;
     border: 1px dashed black;
 }
 

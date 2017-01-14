@@ -21509,13 +21509,13 @@
 	
 	var _ArticleList2 = _interopRequireDefault(_ArticleList);
 	
-	var _SelectionBar = __webpack_require__(223);
+	var _SelectionBar = __webpack_require__(225);
 	
 	var _SelectionBar2 = _interopRequireDefault(_SelectionBar);
 	
 	var _reactRedux = __webpack_require__(180);
 	
-	var _Store = __webpack_require__(229);
+	var _Store = __webpack_require__(231);
 	
 	var _Store2 = _interopRequireDefault(_Store);
 	
@@ -21579,6 +21579,10 @@
 	
 	var _Article2 = _interopRequireDefault(_Article);
 	
+	var _fixtures = __webpack_require__(223);
+	
+	var _Filters = __webpack_require__(224);
+	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -21617,7 +21621,11 @@
 	
 	exports.default = (0, _reactRedux.connect)(function (state) {
 	    return {
-	        articles: state.articles
+	        articles: function (state) {
+	            return _fixtures.articles.filter(function (article) {
+	                return !(0, _Filters.inArray)(article, state.deletedArticles) && (0, _Filters.inRange)(article.date, state.range) && (0, _Filters.inSelected)();
+	            });
+	        }(state)
 	    };
 	})(ArticleList);
 
@@ -24073,7 +24081,8 @@
 	    value: true
 	});
 	exports.deleteArticle = deleteArticle;
-	exports.daySelection = daySelection;
+	exports.daySelected = daySelected;
+	exports.dayReset = dayReset;
 	
 	var _Constants = __webpack_require__(222);
 	
@@ -24082,12 +24091,18 @@
 	        type: _Constants.DELETE_ARTICLE,
 	        payload: { id: id }
 	    };
-	};
+	}
 	
-	function daySelection(day) {
+	function daySelected(day) {
 	    return {
 	        type: _Constants.DAY_SELECTED,
 	        payload: { day: day }
+	    };
+	}
+	
+	function dayReset() {
+	    return {
+	        type: _Constants.DAY_RESET
 	    };
 	}
 
@@ -24098,13 +24113,227 @@
 	'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
-	  value: true
+	    value: true
 	});
 	var DELETE_ARTICLE = exports.DELETE_ARTICLE = 'DELETE_ARTICLE';
 	var DAY_SELECTED = exports.DAY_SELECTED = 'DAY_SELECTED';
+	var DAY_RESET = exports.DAY_RESET = 'DAY_RESET';
+	
+	// localization date-picker
+	var MONTH = exports.MONTH = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+	
+	var WEEKDAYS_LONG = exports.WEEKDAYS_LONG = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"];
+	
+	var WEEKDAYS_SHORT = exports.WEEKDAYS_SHORT = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
 
 /***/ },
 /* 223 */
+/***/ function(module, exports) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	var normalizedComments = exports.normalizedComments = [{
+	    "id": 0,
+	    "user": "Gilliam Underwood",
+	    "text": "Velit anim deserunt elit velit est fugiat duis eiusmod eu do incididunt ut tempor voluptate. Officia dolor aliqua id anim mollit pariatur id commodo. Laborum minim non ut aliquip commodo est consectetur. Mollit eu aliqua tempor est nulla ullamco irure. Sit non amet et eiusmod cillum ex cillum anim incididunt ad laboris mollit. Sunt quis incididunt elit ea qui non ullamco aliquip consequat voluptate eiusmod est. Irure laboris amet culpa sit aliquip."
+	}, {
+	    "id": 1,
+	    "user": "Dolly Franklin",
+	    "text": "Aliquip id nostrud adipisicing irure. Labore reprehenderit ea ex officia ullamco incididunt consequat elit amet quis commodo. Fugiat amet veniam cillum ut aliquip velit est esse minim fugiat eiusmod sint. Commodo ea in culpa deserunt."
+	}, {
+	    "id": 2,
+	    "user": "Brennan Atkins",
+	    "text": "Nisi sit nisi cillum dolor fugiat sint do nostrud ex cillum cupidatat. Culpa do duis non et excepteur labore dolor culpa qui tempor veniam. Ex labore deserunt qui sit aute ad incididunt do cupidatat eiusmod reprehenderit ad. Qui laborum qui voluptate velit et consectetur ipsum enim dolore minim. Est sint velit tempor reprehenderit. Qui consectetur ad minim consequat."
+	}, {
+	    "id": 3,
+	    "user": "Jodi Humphrey",
+	    "text": "Non amet amet ut magna culpa dolore consequat occaecat. Commodo adipisicing laboris voluptate enim mollit mollit anim aliquip deserunt nostrud deserunt cillum est. Ad eu cupidatat dolor nostrud et minim id in dolor occaecat ad magna elit. Laboris elit laboris aliquip Lorem reprehenderit id amet reprehenderit laborum minim incididunt cupidatat eiusmod."
+	}, {
+	    "id": 4,
+	    "user": "Joyce Weber",
+	    "text": "Non qui Lorem qui commodo sint in esse non aliqua pariatur mollit veniam. Elit labore ad nisi anim adipisicing tempor velit commodo adipisicing ipsum ut. Nostrud cillum aliquip adipisicing id do occaecat est eiusmod adipisicing duis. Magna dolore et non nisi in non cillum officia elit non esse proident irure aute. Proident mollit amet enim dolore eiusmod dolor qui. Eiusmod reprehenderit cillum sit deserunt nostrud enim duis excepteur. Excepteur pariatur sunt in ipsum id minim est mollit."
+	}, {
+	    "id": 5,
+	    "user": "Gilliam Underwood",
+	    "text": "Velit anim deserunt elit velit est fugiat duis eiusmod eu do incididunt ut tempor voluptate. Officia dolor aliqua id anim mollit pariatur id commodo. Laborum minim non ut aliquip commodo est consectetur. Mollit eu aliqua tempor est nulla ullamco irure. Sit non amet et eiusmod cillum ex cillum anim incididunt ad laboris mollit. Sunt quis incididunt elit ea qui non ullamco aliquip consequat voluptate eiusmod est. Irure laboris amet culpa sit aliquip."
+	}, {
+	    "id": 6,
+	    "user": "Dolly Franklin",
+	    "text": "Aliquip id nostrud adipisicing irure. Labore reprehenderit ea ex officia ullamco incididunt consequat elit amet quis commodo. Fugiat amet veniam cillum ut aliquip velit est esse minim fugiat eiusmod sint. Commodo ea in culpa deserunt."
+	}, {
+	    "id": 7,
+	    "user": "Brennan Atkins",
+	    "text": "Nisi sit nisi cillum dolor fugiat sint do nostrud ex cillum cupidatat. Culpa do duis non et excepteur labore dolor culpa qui tempor veniam. Ex labore deserunt qui sit aute ad incididunt do cupidatat eiusmod reprehenderit ad. Qui laborum qui voluptate velit et consectetur ipsum enim dolore minim. Est sint velit tempor reprehenderit. Qui consectetur ad minim consequat."
+	}, {
+	    "id": 8,
+	    "user": "Jodi Humphrey",
+	    "text": "Non amet amet ut magna culpa dolore consequat occaecat. Commodo adipisicing laboris voluptate enim mollit mollit anim aliquip deserunt nostrud deserunt cillum est. Ad eu cupidatat dolor nostrud et minim id in dolor occaecat ad magna elit. Laboris elit laboris aliquip Lorem reprehenderit id amet reprehenderit laborum minim incididunt cupidatat eiusmod."
+	}, {
+	    "id": 9,
+	    "user": "Joyce Weber",
+	    "text": "Non qui Lorem qui commodo sint in esse non aliqua pariatur mollit veniam. Elit labore ad nisi anim adipisicing tempor velit commodo adipisicing ipsum ut. Nostrud cillum aliquip adipisicing id do occaecat est eiusmod adipisicing duis. Magna dolore et non nisi in non cillum officia elit non esse proident irure aute. Proident mollit amet enim dolore eiusmod dolor qui. Eiusmod reprehenderit cillum sit deserunt nostrud enim duis excepteur. Excepteur pariatur sunt in ipsum id minim est mollit."
+	}];
+	
+	var normalizedArticles = exports.normalizedArticles = [{
+	    "id": "56c782f18990ecf954f6e027",
+	    "date": "2016-06-09T15:03:23.000Z",
+	    "title": "Commodo qui incididunt",
+	    "text": "Commodo qui incididunt ex ut ea nulla et eu aliquip duis. Aute deserunt excepteur ullamco fugiat sunt aliquip exercitation do sint incididunt. Amet consectetur sint irure reprehenderit fugiat amet mollit. In commodo mollit ullamco cillum pariatur eiusmod cillum aute mollit. Culpa non sint eiusmod ad dolor velit dolore voluptate do adipisicing. Cupidatat sint est magna officia qui magna eu elit qui excepteur fugiat duis ex labore.\n\nAliquip veniam ad reprehenderit mollit exercitation id enim ut exercitation. Esse irure ipsum minim laborum reprehenderit irure ut. Tempor excepteur nisi nulla nostrud amet id cillum. Sint velit sint officia aliqua sint quis deserunt.\n\nAliquip dolor cillum deserunt enim nulla dolor amet irure cupidatat commodo laboris id aliqua. Labore aliqua adipisicing Lorem id adipisicing. Ad cupidatat et do anim ex commodo elit magna ad consequat. Nostrud sit eu laborum ut consequat fugiat aute culpa. Lorem tempor quis sunt ad consequat excepteur est. Enim voluptate cillum Lorem ex fugiat ea qui. Irure aute magna dolore eiusmod minim non ad anim dolore sint et.",
+	    "comments": [0, 1, 2, 3, 4]
+	}, {
+	    "id": "56c782f17b4e0ba78c7ad717",
+	    "date": "2016-06-07T15:03:23.000Z",
+	    "title": "Quis occaecat",
+	    "text": "Quis occaecat duis aliqua reprehenderit excepteur nisi deserunt excepteur elit magna. Magna cillum anim veniam deserunt voluptate occaecat irure fugiat laboris proident. Tempor do magna deserunt cillum laborum cillum ut.\n\nEst sunt cupidatat in deserunt sit aliqua duis. Mollit consequat duis aliquip occaecat pariatur non do eiusmod dolore amet deserunt ullamco. Ea minim tempor exercitation do tempor nostrud dolor minim veniam laboris commodo ex duis. Do nostrud voluptate ullamco consequat anim tempor voluptate incididunt aliqua tempor.\n\nIn irure quis nostrud do. Labore laboris irure culpa reprehenderit pariatur laboris in commodo culpa enim cillum magna. Magna ipsum pariatur sunt in reprehenderit ipsum duis officia voluptate adipisicing ad officia. Duis est sint mollit amet laborum magna non quis nulla ipsum in veniam sit. Amet velit consequat esse esse ea. Ipsum non do ut cillum in adipisicing labore non commodo do laborum sunt.",
+	    "comments": [5, 6]
+	}, {
+	    "id": "56c782f1978fdf9a0100df52",
+	    "date": "2016-06-03T15:03:23.000Z",
+	    "title": "Hello world title",
+	    "text": "Culpa dolor deserunt veniam irure amet officia excepteur labore nisi labore ad labore laborum aute. Ea irure sit exercitation ex. Aliquip dolore duis ullamco labore qui. Et anim irure laborum quis ipsum. Adipisicing culpa est ea velit veniam dolor nisi. Sit cupidatat velit commodo eu.\n\nUt nulla ut irure cillum irure sint sunt cupidatat tempor laboris incididunt elit occaecat fugiat. Reprehenderit enim cupidatat consectetur pariatur ad pariatur consequat veniam do fugiat Lorem laborum do velit. Nulla aute magna magna nisi officia et. Aute adipisicing eu eiusmod tempor exercitation sint non enim laboris dolor adipisicing.\n\nEa do sint pariatur voluptate ad culpa irure. Cillum pariatur deserunt fugiat elit. Exercitation labore amet deserunt magna. Velit veniam aute officia aliqua ipsum veniam pariatur. Aliquip ullamco fugiat officia non sunt ad consequat ipsum est esse commodo reprehenderit. Ad quis consectetur est exercitation fugiat eiusmod. Laborum reprehenderit esse qui irure.",
+	    "comments": [7]
+	}, {
+	    "id": "56c782f1e17f4f9311dfaa2c",
+	    "date": "2016-06-01T15:03:23.000Z",
+	    "title": "Voluptate est officia",
+	    "text": "Voluptate est officia pariatur tempor labore consequat consequat consectetur culpa enim. Amet laborum commodo in ullamco magna aliquip. Cupidatat veniam adipisicing labore irure nostrud sunt proident aute in. Sit Lorem consequat cillum enim id excepteur aliqua nostrud sint quis aute est est dolor. Sunt culpa est magna ad qui consequat exercitation. Enim sit ex do cupidatat laborum.\n\nOccaecat do tempor ex in dolor cupidatat do quis laboris anim. Et duis esse pariatur magna ex ipsum ut do ut id cillum. Nostrud fugiat sit minim ea. Nisi nulla sunt et et voluptate. Velit reprehenderit enim nulla mollit dolore excepteur Lorem do Lorem do cillum est qui. Ipsum mollit duis laboris incididunt non sit sunt proident. Aute voluptate id sunt aute proident officia.\n\nEnim ut nulla cillum officia cupidatat eiusmod amet laborum do labore id. Laborum in laboris aliquip anim consectetur magna reprehenderit consequat eiusmod esse Lorem consequat aliqua. Eiusmod voluptate mollit sint consectetur eu deserunt laboris ad et sunt nulla fugiat quis non. Dolor qui do cupidatat proident mollit amet sint pariatur non aliquip enim ex.",
+	    "comments": [8]
+	}, {
+	    "id": "56c782f197fe2bad471b3740",
+	    "date": "2016-06-07T15:03:23.000Z",
+	    "title": "Ex sunt sunt aliqua",
+	    "text": "Ex sunt sunt aliqua reprehenderit aliqua occaecat. Minim anim commodo officia veniam proident aute cillum eu sunt aute nostrud. Laboris fugiat velit ut pariatur occaecat adipisicing pariatur occaecat. Duis sint enim et consectetur quis pariatur laborum excepteur. Ipsum aliquip qui laborum commodo consectetur do velit veniam occaecat. Ad nisi dolor cillum elit magna dolor voluptate ea. Enim in duis ea consequat sunt Lorem aute.\n\nEst elit sunt quis officia reprehenderit do elit commodo eiusmod esse voluptate. Sit ipsum commodo sint voluptate culpa labore elit magna ullamco nostrud. Laboris magna magna anim labore mollit irure voluptate. Aute non magna aliqua aliqua sunt. Velit mollit consectetur aliqua id tempor ut. Tempor cupidatat aliquip excepteur occaecat incididunt nulla Lorem sint.\n\nNon commodo anim deserunt in et aliquip incididunt ut consectetur sunt esse commodo deserunt et. Tempor fugiat laboris cillum laboris labore. Deserunt quis ad do labore amet culpa officia. Esse et officia nostrud tempor occaecat officia anim incididunt amet sunt excepteur Lorem. Aute occaecat magna velit nisi sit anim consequat velit qui pariatur. Esse incididunt id officia aliqua anim ut et.",
+	    "comments": [9]
+	}, {
+	    "id": "56c782f1a2c2c3268ddb3206",
+	    "date": "2016-06-01T15:03:23.000Z",
+	    "title": "Commodo laborum sit nostru",
+	    "text": "Commodo laborum sit nostrud reprehenderit cupidatat officia laboris. Ipsum minim culpa in enim. Voluptate dolor ea irure nisi incididunt enim magna.\n\nCupidatat quis cillum velit culpa tempor esse irure nostrud ea consectetur officia fugiat irure qui. Enim quis officia do in. Velit veniam ipsum consequat aliqua duis voluptate. Minim nisi ex aute ad.\n\nNisi Lorem ex tempor adipisicing labore. Quis occaecat fugiat pariatur labore culpa cillum laboris. Labore occaecat ut laborum sit ex do sit. Deserunt consectetur elit aute laboris est deserunt officia ullamco sit laboris officia aliquip. Aliqua ut sunt nostrud voluptate excepteur quis incididunt Lorem ut.",
+	    "comments": []
+	}];
+	
+	var articles = exports.articles = [{
+	    "id": "56c782f18990ecf954f6e027",
+	    "date": "2016-06-09T15:03:23.000Z",
+	    "title": "Commodo qui incididunt",
+	    "text": "Commodo qui incididunt ex ut ea nulla et eu aliquip duis. Aute deserunt excepteur ullamco fugiat sunt aliquip exercitation do sint incididunt. Amet consectetur sint irure reprehenderit fugiat amet mollit. In commodo mollit ullamco cillum pariatur eiusmod cillum aute mollit. Culpa non sint eiusmod ad dolor velit dolore voluptate do adipisicing. Cupidatat sint est magna officia qui magna eu elit qui excepteur fugiat duis ex labore.\n\nAliquip veniam ad reprehenderit mollit exercitation id enim ut exercitation. Esse irure ipsum minim laborum reprehenderit irure ut. Tempor excepteur nisi nulla nostrud amet id cillum. Sint velit sint officia aliqua sint quis deserunt.\n\nAliquip dolor cillum deserunt enim nulla dolor amet irure cupidatat commodo laboris id aliqua. Labore aliqua adipisicing Lorem id adipisicing. Ad cupidatat et do anim ex commodo elit magna ad consequat. Nostrud sit eu laborum ut consequat fugiat aute culpa. Lorem tempor quis sunt ad consequat excepteur est. Enim voluptate cillum Lorem ex fugiat ea qui. Irure aute magna dolore eiusmod minim non ad anim dolore sint et.",
+	    "comments": [{
+	        "id": 0,
+	        "user": "Gilliam Underwood",
+	        "text": "Velit anim deserunt elit velit est fugiat duis eiusmod eu do incididunt ut tempor voluptate. Officia dolor aliqua id anim mollit pariatur id commodo. Laborum minim non ut aliquip commodo est consectetur. Mollit eu aliqua tempor est nulla ullamco irure. Sit non amet et eiusmod cillum ex cillum anim incididunt ad laboris mollit. Sunt quis incididunt elit ea qui non ullamco aliquip consequat voluptate eiusmod est. Irure laboris amet culpa sit aliquip."
+	    }, {
+	        "id": 1,
+	        "user": "Dolly Franklin",
+	        "text": "Aliquip id nostrud adipisicing irure. Labore reprehenderit ea ex officia ullamco incididunt consequat elit amet quis commodo. Fugiat amet veniam cillum ut aliquip velit est esse minim fugiat eiusmod sint. Commodo ea in culpa deserunt."
+	    }, {
+	        "id": 2,
+	        "title": "Hello world title",
+	        "user": "Brennan Atkins",
+	        "text": "Nisi sit nisi cillum dolor fugiat sint do nostrud ex cillum cupidatat. Culpa do duis non et excepteur labore dolor culpa qui tempor veniam. Ex labore deserunt qui sit aute ad incididunt do cupidatat eiusmod reprehenderit ad. Qui laborum qui voluptate velit et consectetur ipsum enim dolore minim. Est sint velit tempor reprehenderit. Qui consectetur ad minim consequat."
+	    }, {
+	        "id": 3,
+	        "user": "Jodi Humphrey",
+	        "text": "Non amet amet ut magna culpa dolore consequat occaecat. Commodo adipisicing laboris voluptate enim mollit mollit anim aliquip deserunt nostrud deserunt cillum est. Ad eu cupidatat dolor nostrud et minim id in dolor occaecat ad magna elit. Laboris elit laboris aliquip Lorem reprehenderit id amet reprehenderit laborum minim incididunt cupidatat eiusmod."
+	    }, {
+	        "id": 4,
+	        "user": "Joyce Weber",
+	        "text": "Non qui Lorem qui commodo sint in esse non aliqua pariatur mollit veniam. Elit labore ad nisi anim adipisicing tempor velit commodo adipisicing ipsum ut. Nostrud cillum aliquip adipisicing id do occaecat est eiusmod adipisicing duis. Magna dolore et non nisi in non cillum officia elit non esse proident irure aute. Proident mollit amet enim dolore eiusmod dolor qui. Eiusmod reprehenderit cillum sit deserunt nostrud enim duis excepteur. Excepteur pariatur sunt in ipsum id minim est mollit."
+	    }]
+	}, {
+	    "id": "56c782f17b4e0ba78c7ad717",
+	    "date": "2016-04-09T18:03:23.000Z",
+	    "title": "Quis occaecat",
+	    "text": "Quis occaecat duis aliqua reprehenderit excepteur nisi deserunt excepteur elit magna. Magna cillum anim veniam deserunt voluptate occaecat irure fugiat laboris proident. Tempor do magna deserunt cillum laborum cillum ut.\n\nEst sunt cupidatat in deserunt sit aliqua duis. Mollit consequat duis aliquip occaecat pariatur non do eiusmod dolore amet deserunt ullamco. Ea minim tempor exercitation do tempor nostrud dolor minim veniam laboris commodo ex duis. Do nostrud voluptate ullamco consequat anim tempor voluptate incididunt aliqua tempor.\n\nIn irure quis nostrud do. Labore laboris irure culpa reprehenderit pariatur laboris in commodo culpa enim cillum magna. Magna ipsum pariatur sunt in reprehenderit ipsum duis officia voluptate adipisicing ad officia. Duis est sint mollit amet laborum magna non quis nulla ipsum in veniam sit. Amet velit consequat esse esse ea. Ipsum non do ut cillum in adipisicing labore non commodo do laborum sunt.",
+	    "comments": [{
+	        "id": 5,
+	        "user": "Gilliam Underwood",
+	        "text": "Velit anim deserunt elit velit est fugiat duis eiusmod eu do incididunt ut tempor voluptate. Officia dolor aliqua id anim mollit pariatur id commodo. Laborum minim non ut aliquip commodo est consectetur. Mollit eu aliqua tempor est nulla ullamco irure. Sit non amet et eiusmod cillum ex cillum anim incididunt ad laboris mollit. Sunt quis incididunt elit ea qui non ullamco aliquip consequat voluptate eiusmod est. Irure laboris amet culpa sit aliquip."
+	    }, {
+	        "id": 6,
+	        "user": "Dolly Franklin",
+	        "text": "Aliquip id nostrud adipisicing irure. Labore reprehenderit ea ex officia ullamco incididunt consequat elit amet quis commodo. Fugiat amet veniam cillum ut aliquip velit est esse minim fugiat eiusmod sint. Commodo ea in culpa deserunt."
+	    }]
+	}, {
+	    "id": "56c782f1978fdf9a0100df52",
+	    "date": "2016-06-02T11:03:23.000Z",
+	    "title": "Hello my new world",
+	    "text": "Culpa dolor deserunt veniam irure amet officia excepteur labore nisi labore ad labore laborum aute. Ea irure sit exercitation ex. Aliquip dolore duis ullamco labore qui. Et anim irure laborum quis ipsum. Adipisicing culpa est ea velit veniam dolor nisi. Sit cupidatat velit commodo eu.\n\nUt nulla ut irure cillum irure sint sunt cupidatat tempor laboris incididunt elit occaecat fugiat. Reprehenderit enim cupidatat consectetur pariatur ad pariatur consequat veniam do fugiat Lorem laborum do velit. Nulla aute magna magna nisi officia et. Aute adipisicing eu eiusmod tempor exercitation sint non enim laboris dolor adipisicing.\n\nEa do sint pariatur voluptate ad culpa irure. Cillum pariatur deserunt fugiat elit. Exercitation labore amet deserunt magna. Velit veniam aute officia aliqua ipsum veniam pariatur. Aliquip ullamco fugiat officia non sunt ad consequat ipsum est esse commodo reprehenderit. Ad quis consectetur est exercitation fugiat eiusmod. Laborum reprehenderit esse qui irure.",
+	    "comments": [{
+	        "id": 7,
+	        "user": "Brennan Atkins",
+	        "text": "Nisi sit nisi cillum dolor fugiat sint do nostrud ex cillum cupidatat. Culpa do duis non et excepteur labore dolor culpa qui tempor veniam. Ex labore deserunt qui sit aute ad incididunt do cupidatat eiusmod reprehenderit ad. Qui laborum qui voluptate velit et consectetur ipsum enim dolore minim. Est sint velit tempor reprehenderit. Qui consectetur ad minim consequat."
+	    }]
+	}, {
+	    "id": "56c782f1e17f4f9311dfaa2c",
+	    "date": "2016-05-19T23:03:23.000Z",
+	    "title": "Voluptate est officia",
+	    "text": "Voluptate est officia pariatur tempor labore consequat consequat consectetur culpa enim. Amet laborum commodo in ullamco magna aliquip. Cupidatat veniam adipisicing labore irure nostrud sunt proident aute in. Sit Lorem consequat cillum enim id excepteur aliqua nostrud sint quis aute est est dolor. Sunt culpa est magna ad qui consequat exercitation. Enim sit ex do cupidatat laborum.\n\nOccaecat do tempor ex in dolor cupidatat do quis laboris anim. Et duis esse pariatur magna ex ipsum ut do ut id cillum. Nostrud fugiat sit minim ea. Nisi nulla sunt et et voluptate. Velit reprehenderit enim nulla mollit dolore excepteur Lorem do Lorem do cillum est qui. Ipsum mollit duis laboris incididunt non sit sunt proident. Aute voluptate id sunt aute proident officia.\n\nEnim ut nulla cillum officia cupidatat eiusmod amet laborum do labore id. Laborum in laboris aliquip anim consectetur magna reprehenderit consequat eiusmod esse Lorem consequat aliqua. Eiusmod voluptate mollit sint consectetur eu deserunt laboris ad et sunt nulla fugiat quis non. Dolor qui do cupidatat proident mollit amet sint pariatur non aliquip enim ex.",
+	    "comments": [{
+	        "id": 8,
+	        "user": "Jodi Humphrey",
+	        "text": "Non amet amet ut magna culpa dolore consequat occaecat. Commodo adipisicing laboris voluptate enim mollit mollit anim aliquip deserunt nostrud deserunt cillum est. Ad eu cupidatat dolor nostrud et minim id in dolor occaecat ad magna elit. Laboris elit laboris aliquip Lorem reprehenderit id amet reprehenderit laborum minim incididunt cupidatat eiusmod."
+	    }]
+	}, {
+	    "id": "56c782f197fe2bad471b3740",
+	    "date": "2016-06-04T15:03:23.000Z",
+	    "title": "Ex sunt sunt aliqua",
+	    "text": "Ex sunt sunt aliqua reprehenderit aliqua occaecat. Minim anim commodo officia veniam proident aute cillum eu sunt aute nostrud. Laboris fugiat velit ut pariatur occaecat adipisicing pariatur occaecat. Duis sint enim et consectetur quis pariatur laborum excepteur. Ipsum aliquip qui laborum commodo consectetur do velit veniam occaecat. Ad nisi dolor cillum elit magna dolor voluptate ea. Enim in duis ea consequat sunt Lorem aute.\n\nEst elit sunt quis officia reprehenderit do elit commodo eiusmod esse voluptate. Sit ipsum commodo sint voluptate culpa labore elit magna ullamco nostrud. Laboris magna magna anim labore mollit irure voluptate. Aute non magna aliqua aliqua sunt. Velit mollit consectetur aliqua id tempor ut. Tempor cupidatat aliquip excepteur occaecat incididunt nulla Lorem sint.\n\nNon commodo anim deserunt in et aliquip incididunt ut consectetur sunt esse commodo deserunt et. Tempor fugiat laboris cillum laboris labore. Deserunt quis ad do labore amet culpa officia. Esse et officia nostrud tempor occaecat officia anim incididunt amet sunt excepteur Lorem. Aute occaecat magna velit nisi sit anim consequat velit qui pariatur. Esse incididunt id officia aliqua anim ut et.",
+	    "comments": [{
+	        "id": 9,
+	        "user": "Joyce Weber",
+	        "text": "Non qui Lorem qui commodo sint in esse non aliqua pariatur mollit veniam. Elit labore ad nisi anim adipisicing tempor velit commodo adipisicing ipsum ut. Nostrud cillum aliquip adipisicing id do occaecat est eiusmod adipisicing duis. Magna dolore et non nisi in non cillum officia elit non esse proident irure aute. Proident mollit amet enim dolore eiusmod dolor qui. Eiusmod reprehenderit cillum sit deserunt nostrud enim duis excepteur. Excepteur pariatur sunt in ipsum id minim est mollit."
+	    }]
+	}, {
+	    "id": "56c782f1a2c2c3268ddb3206",
+	    "date": "2016-06-08T19:03:23.000Z",
+	    "title": "Commodo laborum sit nostru",
+	    "text": "Commodo laborum sit nostrud reprehenderit cupidatat officia laboris. Ipsum minim culpa in enim. Voluptate dolor ea irure nisi incididunt enim magna.\n\nCupidatat quis cillum velit culpa tempor esse irure nostrud ea consectetur officia fugiat irure qui. Enim quis officia do in. Velit veniam ipsum consequat aliqua duis voluptate. Minim nisi ex aute ad.\n\nNisi Lorem ex tempor adipisicing labore. Quis occaecat fugiat pariatur labore culpa cillum laboris. Labore occaecat ut laborum sit ex do sit. Deserunt consectetur elit aute laboris est deserunt officia ullamco sit laboris officia aliquip. Aliqua ut sunt nostrud voluptate excepteur quis incididunt Lorem ut."
+	}];
+
+/***/ },
+/* 224 */
+/***/ function(module, exports) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	exports.inArray = inArray;
+	exports.inRange = inRange;
+	exports.inSelected = inSelected;
+	function inArray(article, array) {
+	    return array.includes(article.id);
+	}
+	
+	function inRange(date, range) {
+	
+	    var vDate = new Date(date);
+	
+	    if (!range.from) {
+	        return true;
+	    }
+	
+	    if (!range.to && vDate >= range.from) {
+	        return true;
+	    }
+	
+	    if (vDate >= range.from && vDate <= range.to) {
+	        return true;
+	    }
+	
+	    return false;
+	}
+	
+	function inSelected() {
+	    return true;
+	}
+
+/***/ },
+/* 225 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -24119,15 +24348,17 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _reactDayPicker = __webpack_require__(224);
+	var _reactDayPicker = __webpack_require__(226);
 	
 	var _reactDayPicker2 = _interopRequireDefault(_reactDayPicker);
 	
-	__webpack_require__(225);
+	var _Constants = __webpack_require__(222);
+	
+	var _AC = __webpack_require__(221);
 	
 	var _reactRedux = __webpack_require__(180);
 	
-	var _AC = __webpack_require__(221);
+	__webpack_require__(227);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -24151,25 +24382,41 @@
 	            args[_key] = arguments[_key];
 	        }
 	
-	        return _ret = (_temp = (_this = _possibleConstructorReturn(this, (_ref = SelectionBar.__proto__ || Object.getPrototypeOf(SelectionBar)).call.apply(_ref, [this].concat(args))), _this), _this.state = {
-	            from: null,
-	            to: null
-	        }, _this.handleDayClick = function (ev, day) {
-	            _this.props.daySelection(day);
+	        return _ret = (_temp = (_this = _possibleConstructorReturn(this, (_ref = SelectionBar.__proto__ || Object.getPrototypeOf(SelectionBar)).call.apply(_ref, [this].concat(args))), _this), _this.handleDayClick = function (ev, day) {
+	            _this.props.daySelected(day);
+	        }, _this.handleOnResetClick = function (ev) {
+	            ev.preventDefault();
+	            _this.props.dayReset();
 	        }, _temp), _possibleConstructorReturn(_this, _ret);
 	    }
 	
 	    _createClass(SelectionBar, [{
 	        key: 'render',
 	        value: function render() {
+	            var _props = this.props,
+	                from = _props.from,
+	                to = _props.to;
+	
+	
 	            return _react2.default.createElement(
 	                'aside',
 	                { className: 'selection_bar' },
 	                _react2.default.createElement('div', { className: 'selection' }),
 	                _react2.default.createElement(_reactDayPicker2.default, {
 	                    initialMonth: new Date(2016, 5),
+	                    months: _Constants.MONTH,
+	                    weekdaysLong: _Constants.WEEKDAYS_LONG,
+	                    weekdaysShort: _Constants.WEEKDAYS_SHORT,
+	                    selectedDays: function selectedDays(day) {
+	                        return _reactDayPicker.DateUtils.isDayInRange(day, { from: from, to: to });
+	                    },
 	                    onDayClick: this.handleDayClick
-	                })
+	                }),
+	                _react2.default.createElement(
+	                    'a',
+	                    { href: '#', onClick: this.handleOnResetClick },
+	                    'reset'
+	                )
 	            );
 	        }
 	    }]);
@@ -24177,26 +24424,28 @@
 	    return SelectionBar;
 	}(_react2.default.Component);
 	
-	exports.default = (0, _reactRedux.connect)(null, { daySelection: _AC.daySelection })(SelectionBar);
+	exports.default = (0, _reactRedux.connect)(function (state) {
+	    return state.range;
+	}, { daySelected: _AC.daySelected, dayReset: _AC.dayReset })(SelectionBar);
 
 /***/ },
-/* 224 */
+/* 226 */
 /***/ function(module, exports, __webpack_require__) {
 
 	!function(e,t){ true?module.exports=t(__webpack_require__(1)):"function"==typeof define&&define.amd?define(["react"],t):"object"==typeof exports?exports.DayPicker=t(require("react")):e.DayPicker=t(e.React)}(this,function(e){return function(e){function t(n){if(o[n])return o[n].exports;var r=o[n]={exports:{},id:n,loaded:!1};return e[n].call(r.exports,r,r.exports,t),r.loaded=!0,r.exports}var o={};return t.m=e,t.c=o,t.p="",t(0)}([function(e,t,o){var n=o(10),r=o(3),a=o(4),s=o(7),i=o(6),l=o(2);e.exports=n["default"]||n,e.exports.DateUtils=r["default"]||r,e.exports.LocaleUtils=a["default"]||a,e.exports.WeekdayPropTypes=s.WeekdayPropTypes,e.exports.NavbarPropTypes=i.NavbarPropTypes,e.exports.PropTypes=l},function(t,o){t.exports=e},function(e,t,o){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var n=o(1);t["default"]={localeUtils:n.PropTypes.shape({formatMonthTitle:n.PropTypes.func,formatWeekdayShort:n.PropTypes.func,formatWeekdayLong:n.PropTypes.func,getFirstDayOfWeek:n.PropTypes.func})}},function(e,t){"use strict";function o(e){return new Date(e.getTime())}function n(e,t){var n=o(e);return n.setMonth(e.getMonth()+t),n}function r(e,t){return!(!e||!t)&&(e.getDate()===t.getDate()&&e.getMonth()===t.getMonth()&&e.getFullYear()===t.getFullYear())}function a(e){var t=new Date;return t.setHours(0,0,0,0),e<t}function s(e){var t=new Date((new Date).getTime()+864e5);return t.setHours(0,0,0,0),e>=t}function i(e,t,n){var r=o(e),a=o(t),s=o(n);return r.setHours(0,0,0,0),a.setHours(0,0,0,0),s.setHours(0,0,0,0),a<r&&r<s||s<r&&r<a}function l(e){var t=arguments.length>1&&void 0!==arguments[1]?arguments[1]:{from:null,to:null},o=t.from,n=t.to;return o?o&&n&&r(o,n)&&r(e,o)?(o=null,n=null):n&&e<o?o=e:n&&r(e,n)?(o=e,n=e):(n=e,n<o&&(n=o,o=e)):o=e,{from:o,to:n}}function u(e,t){var o=t.from,n=t.to;return o&&r(e,o)||n&&r(e,n)||o&&n&&i(e,o,n)}Object.defineProperty(t,"__esModule",{value:!0}),t.clone=o,t.addMonths=n,t.isSameDay=r,t.isPastDay=a,t.isFutureDay=s,t.isDayBetween=i,t.addDayToRange=l,t.isDayInRange=u,t["default"]={addDayToRange:l,addMonths:n,clone:o,isSameDay:r,isDayInRange:u,isDayBetween:i,isPastDay:a,isFutureDay:s}},function(e,t){"use strict";function o(e){return e.toDateString()}function n(e){return c[e.getMonth()]+" "+e.getFullYear()}function r(e){return u[e]}function a(e){return l[e]}function s(){return 0}function i(){return c}Object.defineProperty(t,"__esModule",{value:!0}),t.formatDay=o,t.formatMonthTitle=n,t.formatWeekdayShort=r,t.formatWeekdayLong=a,t.getFirstDayOfWeek=s,t.getMonths=i;var l=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],u=["Su","Mo","Tu","We","Th","Fr","Sa"],c=["January","February","March","April","May","June","July","August","September","October","November","December"];t["default"]={formatDay:o,formatMonthTitle:n,formatWeekdayShort:r,formatWeekdayLong:a,getFirstDayOfWeek:s,getMonths:i}},function(e,t,o){"use strict";function n(e){e.preventDefault(),e.stopPropagation()}function r(e,t){var o={};return Object.keys(e).filter(function(e){return!{}.hasOwnProperty.call(t,e)}).forEach(function(t){o[t]=e[t]}),o}function a(e){return new Date(e.getFullYear(),e.getMonth(),1,12)}function s(e){var t=a(e);return t.setMonth(t.getMonth()+1),t.setDate(t.getDate()-1),t.getDate()}function i(e){var t=h({},e.modifiers);return e.selectedDays&&(t.selected=e.selectedDays),e.disabledDays&&(t.disabled=e.disabledDays),t}function l(e){var t=e.firstDayOfWeek,o=e.locale,n=void 0===o?"en":o,r=e.localeUtils,a=void 0===r?{}:r;return isNaN(t)?a.getFirstDayOfWeek?a.getFirstDayOfWeek(n):0:t}function u(e){var t=arguments.length>1&&void 0!==arguments[1]?arguments[1]:{};return Object.keys(t).reduce(function(o,n){var r=t[n];return r(e)&&o.push(n),o},[])}function c(e,t){return t.getMonth()-e.getMonth()+12*(t.getFullYear()-e.getFullYear())}function p(e){for(var t=arguments.length>1&&void 0!==arguments[1]?arguments[1]:(0,d.getFirstDayOfWeek)(),o=arguments[2],n=s(e),r=[],a=[],i=[],l=1;l<=n;l+=1)r.push(new Date(e.getFullYear(),e.getMonth(),l,12));r.forEach(function(e){a.length>0&&e.getDay()===t&&(i.push(a),a=[]),a.push(e),r.indexOf(e)===r.length-1&&i.push(a)});for(var u=i[0],c=7-u.length;c>0;c-=1){var p=(0,y.clone)(u[0]);p.setDate(u[0].getDate()-1),u.unshift(p)}for(var f=i[i.length-1],h=f.length;h<7;h+=1){var v=(0,y.clone)(f[f.length-1]);v.setDate(f[f.length-1].getDate()+1),f.push(v)}if(o&&i.length<6)for(var P=void 0,g=i.length;g<6;g+=1){P=i[i.length-1];for(var D=P[P.length-1],k=[],M=0;M<7;M+=1){var m=(0,y.clone)(D);m.setDate(D.getDate()+M+1),k.push(m)}i.push(k)}return i}function f(e){var t=(0,y.clone)(e);return t.setDate(1),t.setHours(12,0,0,0),t}Object.defineProperty(t,"__esModule",{value:!0});var h=Object.assign||function(e){for(var t=1;t<arguments.length;t++){var o=arguments[t];for(var n in o)Object.prototype.hasOwnProperty.call(o,n)&&(e[n]=o[n])}return e};t.cancelEvent=n,t.getCustomProps=r,t.getFirstDayOfMonth=a,t.getDaysInMonth=s,t.getModifiersFromProps=i,t.getFirstDayOfWeekFromProps=l,t.getModifiersForDay=u,t.getMonthsDiff=c,t.getWeekArray=p,t.startOfMonth=f;var y=o(3),d=o(4)},function(e,t,o){"use strict";function n(e){return e&&e.__esModule?e:{"default":e}}function r(e){var t=e.className,o=e.showPreviousButton,n=e.showNextButton,r=e.onPreviousClick,a=e.onNextClick,l=e.dir,u="rtl"===l?a:r,c="rtl"===l?r:a,p=o&&s["default"].createElement("span",{role:"button",key:"previous",className:i+"--prev",onClick:function(){return u()}}),f=n&&s["default"].createElement("span",{role:"button",key:"right",className:i+"--next",onClick:function(){return c()}});return s["default"].createElement("div",{className:t},"rtl"===l?[f,p]:[p,f])}Object.defineProperty(t,"__esModule",{value:!0}),t.NavbarPropTypes=void 0,t["default"]=r;var a=o(1),s=n(a),i="DayPicker-NavButton DayPicker-NavButton",l=t.NavbarPropTypes={className:a.PropTypes.string,showPreviousButton:a.PropTypes.bool,showNextButton:a.PropTypes.bool,onPreviousClick:a.PropTypes.func,onNextClick:a.PropTypes.func,dir:a.PropTypes.string};r.propTypes=l,r.defaultProps={className:"DayPicker-NavBar",dir:"ltr",showPreviousButton:!0,showNextButton:!0}},function(e,t,o){"use strict";function n(e){return e&&e.__esModule?e:{"default":e}}function r(e){var t=e.weekday,o=e.className,n=e.weekdaysLong,r=e.weekdaysShort,a=e.localeUtils,i=e.locale,l=void 0;l=n?n[t]:a.formatWeekdayLong(t,i);var u=void 0;return u=r?r[t]:a.formatWeekdayShort(t,i),s["default"].createElement("div",{className:o},s["default"].createElement("abbr",{title:l},u))}Object.defineProperty(t,"__esModule",{value:!0}),t.WeekdayPropTypes=void 0,t["default"]=r;var a=o(1),s=n(a),i=o(2),l=n(i),u=t.WeekdayPropTypes={weekday:a.PropTypes.number,className:a.PropTypes.string,locale:a.PropTypes.string,localeUtils:l["default"].localeUtils,weekdaysLong:a.PropTypes.arrayOf(a.PropTypes.string),weekdaysShort:a.PropTypes.arrayOf(a.PropTypes.string)};r.propTypes=u},function(e,t,o){"use strict";function n(e){return e&&e.__esModule?e:{"default":e}}function r(e){var t=e.date,o=e.months,n=e.locale,r=e.localeUtils,a=e.onClick;return s["default"].createElement("div",{className:"DayPicker-Caption",onClick:a,role:"heading"},o?o[t.getMonth()]+" "+t.getFullYear():r.formatMonthTitle(t,n))}Object.defineProperty(t,"__esModule",{value:!0}),t["default"]=r;var a=o(1),s=n(a),i=o(2),l=n(i);r.propTypes={date:a.PropTypes.instanceOf(Date),months:s["default"].PropTypes.arrayOf(s["default"].PropTypes.string),locale:a.PropTypes.string,localeUtils:l["default"].localeUtils,onClick:a.PropTypes.func}},function(e,t,o){"use strict";function n(e){return e&&e.__esModule?e:{"default":e}}function r(e,t,o){if(e){var n={};return o.forEach(function(e){n[e]=!0}),function(o){o.persist(),e(o,t,n)}}}function a(e){var t=e.day,o=e.tabIndex,n=e.empty,a=e.modifiers,s=e.onMouseEnter,l=e.onMouseLeave,u=e.onClick,c=e.onKeyDown,p=e.onTouchStart,f=e.onTouchEnd,h=e.onFocus,y=e.ariaLabel,d=e.ariaDisabled,v=e.ariaSelected,P=e.children,g="DayPicker-Day";return g+=a.map(function(e){return" "+g+"--"+e}).join(""),n?i["default"].createElement("div",{role:"gridcell","aria-disabled":!0,className:g}):i["default"].createElement("div",{className:g,tabIndex:o,role:"gridcell","aria-label":y,"aria-disabled":d.toString(),"aria-selected":v.toString(),onClick:r(u,t,a),onKeyDown:r(c,t,a),onMouseEnter:r(s,t,a),onMouseLeave:r(l,t,a),onTouchEnd:r(f,t,a),onTouchStart:r(p,t,a),onFocus:r(h,t,a)},P)}Object.defineProperty(t,"__esModule",{value:!0}),t["default"]=a;var s=o(1),i=n(s);a.propTypes={day:s.PropTypes.instanceOf(Date).isRequired,children:s.PropTypes.node.isRequired,ariaDisabled:s.PropTypes.bool,ariaLabel:s.PropTypes.string,ariaSelected:s.PropTypes.bool,empty:s.PropTypes.bool,modifiers:s.PropTypes.array,onClick:s.PropTypes.func,onKeyDown:s.PropTypes.func,onMouseEnter:s.PropTypes.func,onMouseLeave:s.PropTypes.func,onTouchEnd:s.PropTypes.func,onTouchStart:s.PropTypes.func,onFocus:s.PropTypes.func,tabIndex:s.PropTypes.number},a.defaultProps={modifiers:[],empty:!1}},function(e,t,o){"use strict";function n(e){if(e&&e.__esModule)return e;var t={};if(null!=e)for(var o in e)Object.prototype.hasOwnProperty.call(e,o)&&(t[o]=e[o]);return t["default"]=e,t}function r(e){return e&&e.__esModule?e:{"default":e}}function a(e,t){var o={};for(var n in e)t.indexOf(n)>=0||Object.prototype.hasOwnProperty.call(e,n)&&(o[n]=e[n]);return o}function s(e){if(Array.isArray(e)){for(var t=0,o=Array(e.length);t<e.length;t++)o[t]=e[t];return o}return Array.from(e)}function i(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}function l(e,t){if(!e)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!t||"object"!=typeof t&&"function"!=typeof t?e:t}function u(e,t){if("function"!=typeof t&&null!==t)throw new TypeError("Super expression must either be null or a function, not "+typeof t);e.prototype=Object.create(t&&t.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),t&&(Object.setPrototypeOf?Object.setPrototypeOf(e,t):e.__proto__=t)}Object.defineProperty(t,"__esModule",{value:!0});var c=Object.assign||function(e){for(var t=1;t<arguments.length;t++){var o=arguments[t];for(var n in o)Object.prototype.hasOwnProperty.call(o,n)&&(e[n]=o[n])}return e},p=function(){function e(e,t){for(var o=0;o<t.length;o++){var n=t[o];n.enumerable=n.enumerable||!1,n.configurable=!0,"value"in n&&(n.writable=!0),Object.defineProperty(e,n.key,n)}}return function(t,o,n){return o&&e(t.prototype,o),n&&e(t,n),t}}(),f=o(1),h=r(f),y=o(8),d=r(y),v=o(6),P=r(v),g=o(11),D=r(g),k=o(9),M=r(k),m=o(7),T=r(m),w=o(5),b=n(w),O=o(3),N=n(O),E=o(4),x=n(E),C=o(13),W=r(C),_=o(2),S=r(_),F=function(e){function t(e){i(this,t);var o=l(this,(t.__proto__||Object.getPrototypeOf(t)).call(this,e));return j.call(o),o.renderDayInMonth=o.renderDayInMonth.bind(o),o.showNextMonth=o.showNextMonth.bind(o),o.showPreviousMonth=o.showPreviousMonth.bind(o),o.handleKeyDown=o.handleKeyDown.bind(o),o.handleDayClick=o.handleDayClick.bind(o),o.handleDayKeyDown=o.handleDayKeyDown.bind(o),o.state=o.getStateFromProps(e),o}return u(t,e),p(t,[{key:"componentWillReceiveProps",value:function(e){this.props.initialMonth!==e.initialMonth&&this.setState(this.getStateFromProps(e))}},{key:"getDayNodes",value:function(){return this.dayPicker.querySelectorAll(".DayPicker-Day:not(.DayPicker-Day--outside)")}},{key:"getNextNavigableMonth",value:function(){return N.addMonths(this.state.currentMonth,this.props.numberOfMonths)}},{key:"getPreviousNavigableMonth",value:function(){return N.addMonths(this.state.currentMonth,-1)}},{key:"allowPreviousMonth",value:function(){var e=N.addMonths(this.state.currentMonth,-1);return this.allowMonth(e)}},{key:"allowNextMonth",value:function(){var e=N.addMonths(this.state.currentMonth,this.props.numberOfMonths);return this.allowMonth(e)}},{key:"allowMonth",value:function(e){var t=this.props,o=t.fromMonth,n=t.toMonth,r=t.canChangeMonth;return!(!r||o&&b.getMonthsDiff(o,e)<0||n&&b.getMonthsDiff(n,e)>0)}},{key:"allowYearChange",value:function(){return this.props.canChangeMonth}},{key:"showMonth",value:function(e,t){var o=this;this.allowMonth(e)&&this.setState({currentMonth:b.startOfMonth(e)},function(){t&&t(),o.props.onMonthChange&&o.props.onMonthChange(o.state.currentMonth)})}},{key:"showNextMonth",value:function(e){if(this.allowNextMonth()){var t=this.props.pagedNavigation?this.props.numberOfMonths:1,o=N.addMonths(this.state.currentMonth,t);this.showMonth(o,e)}}},{key:"showPreviousMonth",value:function(e){if(this.allowPreviousMonth()){var t=this.props.pagedNavigation?this.props.numberOfMonths:1,o=N.addMonths(this.state.currentMonth,-t);this.showMonth(o,e)}}},{key:"showNextYear",value:function(){if(this.allowYearChange()){var e=N.addMonths(this.state.currentMonth,12);this.showMonth(e)}}},{key:"showPreviousYear",value:function(){if(this.allowYearChange()){var e=N.addMonths(this.state.currentMonth,-12);this.showMonth(e)}}},{key:"focusFirstDayOfMonth",value:function(){this.getDayNodes()[0].focus()}},{key:"focusLastDayOfMonth",value:function(){var e=this.getDayNodes();e[e.length-1].focus()}},{key:"focusPreviousDay",value:function(e){var t=this,o=this.getDayNodes(),n=[].concat(s(o)).indexOf(e);0===n?this.showPreviousMonth(function(){return t.focusLastDayOfMonth()}):o[n-1].focus()}},{key:"focusNextDay",value:function(e){var t=this,o=this.getDayNodes(),n=[].concat(s(o)).indexOf(e);n===o.length-1?this.showNextMonth(function(){return t.focusFirstDayOfMonth()}):o[n+1].focus()}},{key:"focusNextWeek",value:function(e){var t=this,o=this.getDayNodes(),n=[].concat(s(o)).indexOf(e),r=n>o.length-8;r?this.showNextMonth(function(){var e=o.length-n,r=7-e;t.getDayNodes()[r].focus()}):o[n+7].focus()}},{key:"focusPreviousWeek",value:function(e){var t=this,o=this.getDayNodes(),n=[].concat(s(o)).indexOf(e),r=n<=6;r?this.showPreviousMonth(function(){var e=t.getDayNodes(),o=e.length-7,r=o+n;e[r].focus()}):o[n-7].focus()}},{key:"handleKeyDown",value:function(e){switch(e.persist(),e.keyCode){case W["default"].LEFT:this.showPreviousMonth();break;case W["default"].RIGHT:this.showNextMonth();break;case W["default"].UP:this.showPreviousYear();break;case W["default"].DOWN:this.showNextYear()}this.props.onKeyDown&&this.props.onKeyDown(e)}},{key:"handleDayKeyDown",value:function(e,t,o){switch(e.persist(),e.keyCode){case W["default"].LEFT:b.cancelEvent(e),this.focusPreviousDay(e.target);break;case W["default"].RIGHT:b.cancelEvent(e),this.focusNextDay(e.target);break;case W["default"].UP:b.cancelEvent(e),this.focusPreviousWeek(e.target);break;case W["default"].DOWN:b.cancelEvent(e),this.focusNextWeek(e.target);break;case W["default"].ENTER:case W["default"].SPACE:b.cancelEvent(e),this.props.onDayClick&&this.handleDayClick(e,t,o)}this.props.onDayKeyDown&&this.props.onDayKeyDown(e,t,o)}},{key:"handleDayClick",value:function(e,t,o){e.persist(),o.outside&&this.handleOutsideDayClick(t),this.props.onDayClick(e,t,o)}},{key:"handleOutsideDayClick",value:function(e){var t=this.state.currentMonth,o=this.props.numberOfMonths,n=b.getMonthsDiff(t,e);n>0&&n>=o?this.showNextMonth():n<0&&this.showPreviousMonth()}},{key:"renderNavbar",value:function(){var e=this.props,t=e.locale,o=e.localeUtils,n=e.canChangeMonth,r=e.navbarElement,s=a(e,["locale","localeUtils","canChangeMonth","navbarElement"]);if(!n)return null;var i={className:"DayPicker-NavBar",nextMonth:this.getNextNavigableMonth(),previousMonth:this.getPreviousNavigableMonth(),showPreviousButton:this.allowPreviousMonth(),showNextButton:this.allowNextMonth(),onNextClick:this.showNextMonth,onPreviousClick:this.showPreviousMonth,dir:s.dir,locale:t,localeUtils:o};return h["default"].cloneElement(r,i)}},{key:"renderDayInMonth",value:function(e,t){var o=[];N.isSameDay(e,new Date)&&o.push("today"),e.getMonth()!==t.getMonth()&&o.push("outside"),o=[].concat(s(o),s(b.getModifiersForDay(e,b.getModifiersFromProps(this.props))));var n=e.getMonth()!==t.getMonth(),r=null;this.props.onDayClick&&!n&&(r=-1,1===e.getDate()&&(r=this.props.tabIndex));var a=""+e.getFullYear()+e.getMonth()+e.getDate();return h["default"].createElement(M["default"],{key:""+(n?"outside-":"")+a,day:e,modifiers:o,empty:n&&!this.props.enableOutsideDays&&!this.props.fixedWeeks,tabIndex:r,ariaLabel:this.props.localeUtils.formatDay(e,this.props.locale),ariaDisabled:n||o.indexOf("disabled")>-1,ariaSelected:o.indexOf("selected")>-1,onMouseEnter:this.props.onDayMouseEnter,onMouseLeave:this.props.onDayMouseLeave,onKeyDown:this.handleDayKeyDown,onTouchStart:this.props.onDayTouchStart,onTouchEnd:this.props.onDayTouchEnd,onFocus:this.props.onDayFocus,onClick:this.props.onDayClick?this.handleDayClick:void 0},this.props.renderDay(e))}},{key:"renderMonths",value:function(){for(var e=[],t=b.getFirstDayOfWeekFromProps(this.props),o=0;o<this.props.numberOfMonths;o+=1){var n=N.addMonths(this.state.currentMonth,o);e.push(h["default"].createElement(D["default"],{key:o,month:n,months:this.props.months,weekdaysShort:this.props.weekdaysShort,weekdaysLong:this.props.weekdaysLong,locale:this.props.locale,localeUtils:this.props.localeUtils,firstDayOfWeek:t,fixedWeeks:this.props.fixedWeeks,className:"DayPicker-Month",wrapperClassName:"DayPicker-Body",weekClassName:"DayPicker-Week",weekdayComponent:this.props.weekdayComponent,weekdayElement:this.props.weekdayElement,captionElement:this.props.captionElement,onCaptionClick:this.props.onCaptionClick},this.renderDayInMonth))}return this.props.reverseMonths&&e.reverse(),e}},{key:"render",value:function(){var e=this,o=b.getCustomProps(this.props,t.propTypes),n="DayPicker DayPicker--"+this.props.locale;return this.props.onDayClick||(n+=" DayPicker--interactionDisabled"),this.props.className&&(n=n+" "+this.props.className),h["default"].createElement("div",c({},o,{className:n,ref:function(t){e.dayPicker=t},role:"application",tabIndex:this.props.canChangeMonth&&this.props.tabIndex,onKeyDown:this.handleKeyDown}),this.renderNavbar(),this.renderMonths())}}]),t}(f.Component);F.VERSION="3.1.1",F.propTypes={initialMonth:f.PropTypes.instanceOf(Date),numberOfMonths:f.PropTypes.number,selectedDays:f.PropTypes.func,disabledDays:f.PropTypes.func,modifiers:f.PropTypes.object,locale:f.PropTypes.string,localeUtils:S["default"].localeUtils,enableOutsideDays:f.PropTypes.bool,fixedWeeks:f.PropTypes.bool,canChangeMonth:f.PropTypes.bool,reverseMonths:f.PropTypes.bool,pagedNavigation:f.PropTypes.bool,fromMonth:f.PropTypes.instanceOf(Date),toMonth:f.PropTypes.instanceOf(Date),firstDayOfWeek:f.PropTypes.oneOf([0,1,2,3,4,5,6]),months:f.PropTypes.arrayOf(f.PropTypes.string),weekdaysLong:f.PropTypes.arrayOf(f.PropTypes.string),weekdaysShort:f.PropTypes.arrayOf(f.PropTypes.string),onKeyDown:f.PropTypes.func,onDayClick:f.PropTypes.func,onDayKeyDown:f.PropTypes.func,onDayMouseEnter:f.PropTypes.func,onDayMouseLeave:f.PropTypes.func,onDayTouchStart:f.PropTypes.func,onDayTouchEnd:f.PropTypes.func,onDayFocus:f.PropTypes.func,onMonthChange:f.PropTypes.func,onCaptionClick:f.PropTypes.func,renderDay:f.PropTypes.func,weekdayElement:f.PropTypes.element,navbarElement:f.PropTypes.element,captionElement:f.PropTypes.element,dir:f.PropTypes.string,className:f.PropTypes.string,tabIndex:f.PropTypes.number},F.defaultProps={tabIndex:0,initialMonth:new Date,numberOfMonths:1,locale:"en",localeUtils:x,enableOutsideDays:!1,fixedWeeks:!1,canChangeMonth:!0,reverseMonths:!1,pagedNavigation:!1,renderDay:function(e){return e.getDate()},weekdayElement:h["default"].createElement(T["default"],null),navbarElement:h["default"].createElement(P["default"],null),captionElement:h["default"].createElement(d["default"],null)};var j=function(){this.getStateFromProps=function(e){var t=b.startOfMonth(e.initialMonth),o=t;if(e.pagedNavigation&&e.numberOfMonths>1&&e.fromMonth){var n=b.getMonthsDiff(e.fromMonth,o);o=N.addMonths(e.fromMonth,Math.floor(n/e.numberOfMonths)*e.numberOfMonths)}return{currentMonth:o}},this.dayPicker=null};t["default"]=F},function(e,t,o){"use strict";function n(e){return e&&e.__esModule?e:{"default":e}}function r(e){var t=e.month,o=e.months,n=e.weekdaysLong,r=e.weekdaysShort,a=e.locale,i=e.localeUtils,l=e.captionElement,u=e.onCaptionClick,f=e.children,h=e.firstDayOfWeek,y=e.className,d=e.wrapperClassName,v=e.weekClassName,P=e.weekdayElement,g=e.fixedWeeks,D={date:t,months:o,localeUtils:i,locale:a,onClick:u?function(e){return u(e,t)}:void 0},k=(0,p.getWeekArray)(t,h,g);return s["default"].createElement("div",{className:y},s["default"].cloneElement(l,D),s["default"].createElement(c["default"],{weekdaysShort:r,weekdaysLong:n,firstDayOfWeek:h,locale:a,localeUtils:i,weekdayElement:P}),s["default"].createElement("div",{className:d,role:"grid"},k.map(function(e,o){return s["default"].createElement("div",{key:o,className:v,role:"gridcell"},e.map(function(e){return f(e,t)}))})))}Object.defineProperty(t,"__esModule",{value:!0}),t["default"]=r;var a=o(1),s=n(a),i=o(2),l=n(i),u=o(12),c=n(u),p=o(5);r.propTypes={month:a.PropTypes.instanceOf(Date).isRequired,months:s["default"].PropTypes.arrayOf(s["default"].PropTypes.string),captionElement:a.PropTypes.node.isRequired,firstDayOfWeek:a.PropTypes.number.isRequired,weekdaysLong:a.PropTypes.arrayOf(a.PropTypes.string),weekdaysShort:a.PropTypes.arrayOf(a.PropTypes.string),locale:a.PropTypes.string.isRequired,localeUtils:l["default"].localeUtils.isRequired,onCaptionClick:a.PropTypes.func,children:a.PropTypes.func.isRequired,className:a.PropTypes.string,wrapperClassName:a.PropTypes.string,weekClassName:a.PropTypes.string,weekdayElement:a.PropTypes.element,fixedWeeks:a.PropTypes.bool}},function(e,t,o){"use strict";function n(e){return e&&e.__esModule?e:{"default":e}}function r(e){for(var t=e.firstDayOfWeek,o=e.weekdaysLong,n=e.weekdaysShort,r=e.locale,a=e.localeUtils,i=e.weekdayElement,l=[],u=0;u<7;u+=1){var c=(u+t)%7,p={key:u,className:"DayPicker-Weekday",weekday:c,weekdaysLong:o,weekdaysShort:n,localeUtils:a,locale:r},f=s["default"].cloneElement(i,p);l.push(f)}return s["default"].createElement("div",{className:"DayPicker-Weekdays",role:"rowgroup"},s["default"].createElement("div",{className:"DayPicker-WeekdaysRow",role:"columnheader"},l))}Object.defineProperty(t,"__esModule",{value:!0}),t["default"]=r;var a=o(1),s=n(a),i=o(2),l=n(i);r.propTypes={firstDayOfWeek:a.PropTypes.number.isRequired,weekdaysLong:a.PropTypes.arrayOf(a.PropTypes.string),weekdaysShort:a.PropTypes.arrayOf(a.PropTypes.string),locale:a.PropTypes.string.isRequired,localeUtils:l["default"].localeUtils.isRequired,weekdayElement:a.PropTypes.element}},function(e,t){"use strict";Object.defineProperty(t,"__esModule",{value:!0}),t["default"]={LEFT:37,UP:38,RIGHT:39,DOWN:40,ENTER:13,SPACE:32}}])});
 	//# sourceMappingURL=DayPicker.js.map
 
 /***/ },
-/* 225 */
+/* 227 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// style-loader: Adds some css to the DOM by adding a <style> tag
 	
 	// load the styles
-	var content = __webpack_require__(226);
+	var content = __webpack_require__(228);
 	if(typeof content === 'string') content = [[module.id, content, '']];
 	// add the styles to the DOM
-	var update = __webpack_require__(228)(content, {});
+	var update = __webpack_require__(230)(content, {});
 	if(content.locals) module.exports = content.locals;
 	// Hot Module Replacement
 	if(false) {
@@ -24213,10 +24462,10 @@
 	}
 
 /***/ },
-/* 226 */
+/* 228 */
 /***/ function(module, exports, __webpack_require__) {
 
-	exports = module.exports = __webpack_require__(227)();
+	exports = module.exports = __webpack_require__(229)();
 	// imports
 	
 	
@@ -24227,7 +24476,7 @@
 
 
 /***/ },
-/* 227 */
+/* 229 */
 /***/ function(module, exports) {
 
 	/*
@@ -24283,7 +24532,7 @@
 
 
 /***/ },
-/* 228 */
+/* 230 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*
@@ -24535,7 +24784,7 @@
 
 
 /***/ },
-/* 229 */
+/* 231 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -24546,22 +24795,17 @@
 	
 	var _redux = __webpack_require__(191);
 	
-	var _MainReducer = __webpack_require__(230);
+	var _MainReducer = __webpack_require__(232);
 	
 	var _MainReducer2 = _interopRequireDefault(_MainReducer);
-	
-	var _fixtures = __webpack_require__(232);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	var initObj = {
-	    articles: _fixtures.articles,
-	    selection: {
-	        deletedArticles: [],
-	        range: {
-	            from: null,
-	            to: null
-	        }
+	    deletedArticles: [],
+	    range: {
+	        from: null,
+	        to: null
 	    }
 	};
 	
@@ -24570,7 +24814,7 @@
 	exports.default = store;
 
 /***/ },
-/* 230 */
+/* 232 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -24581,239 +24825,20 @@
 	
 	exports.default = function (state, action) {
 	    return {
-	        articles: (0, _ArticlesReducer2.default)({
-	            articles: state.articles,
-	            selection: state.selection
-	        }, action),
-	        selection: (0, _SelectionReducer2.default)(state.selection, action)
+	        deletedArticles: (0, _ArticlesReducer2.default)(state.deletedArticles, action),
+	        range: (0, _DatapickerReducer2.default)(state.range, action)
 	    };
 	};
 	
-	var _ArticlesReducer = __webpack_require__(231);
+	var _ArticlesReducer = __webpack_require__(233);
 	
 	var _ArticlesReducer2 = _interopRequireDefault(_ArticlesReducer);
 	
-	var _SelectionReducer = __webpack_require__(233);
+	var _DatapickerReducer = __webpack_require__(234);
 	
-	var _SelectionReducer2 = _interopRequireDefault(_SelectionReducer);
+	var _DatapickerReducer2 = _interopRequireDefault(_DatapickerReducer);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-/***/ },
-/* 231 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-	
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-	
-	exports.default = function (state, action) {
-	    var type = action.type,
-	        payload = action.payload;
-	
-	    var _ret = function () {
-	
-	        switch (type) {
-	            case _Constants.DELETE_ARTICLE:
-	                return {
-	                    v: state.articles.filter(function (item) {
-	                        return item.id !== payload.id;
-	                    })
-	                };
-	
-	            case _Constants.DAY_SELECTED:
-	
-	                var range = _reactDayPicker.DateUtils.addDayToRange(payload.day, state.selection.range);
-	
-	                return {
-	                    v: _fixtures.articles.filter(function (item) {
-	                        var date = new Date(Date.parse(item.date));
-	                        return date >= range.from && (range.to ? date <= range.to : true) && state.selection.deletedArticles.indexOf(item.id) == -1;
-	                    })
-	                };
-	        }
-	    }();
-	
-	    if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
-	    return state.articles;
-	};
-	
-	var _Constants = __webpack_require__(222);
-	
-	var _reactDayPicker = __webpack_require__(224);
-	
-	var _fixtures = __webpack_require__(232);
-
-/***/ },
-/* 232 */
-/***/ function(module, exports) {
-
-	"use strict";
-	
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-	var normalizedComments = exports.normalizedComments = [{
-	    "id": 0,
-	    "user": "Gilliam Underwood",
-	    "text": "Velit anim deserunt elit velit est fugiat duis eiusmod eu do incididunt ut tempor voluptate. Officia dolor aliqua id anim mollit pariatur id commodo. Laborum minim non ut aliquip commodo est consectetur. Mollit eu aliqua tempor est nulla ullamco irure. Sit non amet et eiusmod cillum ex cillum anim incididunt ad laboris mollit. Sunt quis incididunt elit ea qui non ullamco aliquip consequat voluptate eiusmod est. Irure laboris amet culpa sit aliquip."
-	}, {
-	    "id": 1,
-	    "user": "Dolly Franklin",
-	    "text": "Aliquip id nostrud adipisicing irure. Labore reprehenderit ea ex officia ullamco incididunt consequat elit amet quis commodo. Fugiat amet veniam cillum ut aliquip velit est esse minim fugiat eiusmod sint. Commodo ea in culpa deserunt."
-	}, {
-	    "id": 2,
-	    "user": "Brennan Atkins",
-	    "text": "Nisi sit nisi cillum dolor fugiat sint do nostrud ex cillum cupidatat. Culpa do duis non et excepteur labore dolor culpa qui tempor veniam. Ex labore deserunt qui sit aute ad incididunt do cupidatat eiusmod reprehenderit ad. Qui laborum qui voluptate velit et consectetur ipsum enim dolore minim. Est sint velit tempor reprehenderit. Qui consectetur ad minim consequat."
-	}, {
-	    "id": 3,
-	    "user": "Jodi Humphrey",
-	    "text": "Non amet amet ut magna culpa dolore consequat occaecat. Commodo adipisicing laboris voluptate enim mollit mollit anim aliquip deserunt nostrud deserunt cillum est. Ad eu cupidatat dolor nostrud et minim id in dolor occaecat ad magna elit. Laboris elit laboris aliquip Lorem reprehenderit id amet reprehenderit laborum minim incididunt cupidatat eiusmod."
-	}, {
-	    "id": 4,
-	    "user": "Joyce Weber",
-	    "text": "Non qui Lorem qui commodo sint in esse non aliqua pariatur mollit veniam. Elit labore ad nisi anim adipisicing tempor velit commodo adipisicing ipsum ut. Nostrud cillum aliquip adipisicing id do occaecat est eiusmod adipisicing duis. Magna dolore et non nisi in non cillum officia elit non esse proident irure aute. Proident mollit amet enim dolore eiusmod dolor qui. Eiusmod reprehenderit cillum sit deserunt nostrud enim duis excepteur. Excepteur pariatur sunt in ipsum id minim est mollit."
-	}, {
-	    "id": 5,
-	    "user": "Gilliam Underwood",
-	    "text": "Velit anim deserunt elit velit est fugiat duis eiusmod eu do incididunt ut tempor voluptate. Officia dolor aliqua id anim mollit pariatur id commodo. Laborum minim non ut aliquip commodo est consectetur. Mollit eu aliqua tempor est nulla ullamco irure. Sit non amet et eiusmod cillum ex cillum anim incididunt ad laboris mollit. Sunt quis incididunt elit ea qui non ullamco aliquip consequat voluptate eiusmod est. Irure laboris amet culpa sit aliquip."
-	}, {
-	    "id": 6,
-	    "user": "Dolly Franklin",
-	    "text": "Aliquip id nostrud adipisicing irure. Labore reprehenderit ea ex officia ullamco incididunt consequat elit amet quis commodo. Fugiat amet veniam cillum ut aliquip velit est esse minim fugiat eiusmod sint. Commodo ea in culpa deserunt."
-	}, {
-	    "id": 7,
-	    "user": "Brennan Atkins",
-	    "text": "Nisi sit nisi cillum dolor fugiat sint do nostrud ex cillum cupidatat. Culpa do duis non et excepteur labore dolor culpa qui tempor veniam. Ex labore deserunt qui sit aute ad incididunt do cupidatat eiusmod reprehenderit ad. Qui laborum qui voluptate velit et consectetur ipsum enim dolore minim. Est sint velit tempor reprehenderit. Qui consectetur ad minim consequat."
-	}, {
-	    "id": 8,
-	    "user": "Jodi Humphrey",
-	    "text": "Non amet amet ut magna culpa dolore consequat occaecat. Commodo adipisicing laboris voluptate enim mollit mollit anim aliquip deserunt nostrud deserunt cillum est. Ad eu cupidatat dolor nostrud et minim id in dolor occaecat ad magna elit. Laboris elit laboris aliquip Lorem reprehenderit id amet reprehenderit laborum minim incididunt cupidatat eiusmod."
-	}, {
-	    "id": 9,
-	    "user": "Joyce Weber",
-	    "text": "Non qui Lorem qui commodo sint in esse non aliqua pariatur mollit veniam. Elit labore ad nisi anim adipisicing tempor velit commodo adipisicing ipsum ut. Nostrud cillum aliquip adipisicing id do occaecat est eiusmod adipisicing duis. Magna dolore et non nisi in non cillum officia elit non esse proident irure aute. Proident mollit amet enim dolore eiusmod dolor qui. Eiusmod reprehenderit cillum sit deserunt nostrud enim duis excepteur. Excepteur pariatur sunt in ipsum id minim est mollit."
-	}];
-	
-	var normalizedArticles = exports.normalizedArticles = [{
-	    "id": "56c782f18990ecf954f6e027",
-	    "date": "2016-06-09T15:03:23.000Z",
-	    "title": "Commodo qui incididunt",
-	    "text": "Commodo qui incididunt ex ut ea nulla et eu aliquip duis. Aute deserunt excepteur ullamco fugiat sunt aliquip exercitation do sint incididunt. Amet consectetur sint irure reprehenderit fugiat amet mollit. In commodo mollit ullamco cillum pariatur eiusmod cillum aute mollit. Culpa non sint eiusmod ad dolor velit dolore voluptate do adipisicing. Cupidatat sint est magna officia qui magna eu elit qui excepteur fugiat duis ex labore.\n\nAliquip veniam ad reprehenderit mollit exercitation id enim ut exercitation. Esse irure ipsum minim laborum reprehenderit irure ut. Tempor excepteur nisi nulla nostrud amet id cillum. Sint velit sint officia aliqua sint quis deserunt.\n\nAliquip dolor cillum deserunt enim nulla dolor amet irure cupidatat commodo laboris id aliqua. Labore aliqua adipisicing Lorem id adipisicing. Ad cupidatat et do anim ex commodo elit magna ad consequat. Nostrud sit eu laborum ut consequat fugiat aute culpa. Lorem tempor quis sunt ad consequat excepteur est. Enim voluptate cillum Lorem ex fugiat ea qui. Irure aute magna dolore eiusmod minim non ad anim dolore sint et.",
-	    "comments": [0, 1, 2, 3, 4]
-	}, {
-	    "id": "56c782f17b4e0ba78c7ad717",
-	    "date": "2016-06-07T15:03:23.000Z",
-	    "title": "Quis occaecat",
-	    "text": "Quis occaecat duis aliqua reprehenderit excepteur nisi deserunt excepteur elit magna. Magna cillum anim veniam deserunt voluptate occaecat irure fugiat laboris proident. Tempor do magna deserunt cillum laborum cillum ut.\n\nEst sunt cupidatat in deserunt sit aliqua duis. Mollit consequat duis aliquip occaecat pariatur non do eiusmod dolore amet deserunt ullamco. Ea minim tempor exercitation do tempor nostrud dolor minim veniam laboris commodo ex duis. Do nostrud voluptate ullamco consequat anim tempor voluptate incididunt aliqua tempor.\n\nIn irure quis nostrud do. Labore laboris irure culpa reprehenderit pariatur laboris in commodo culpa enim cillum magna. Magna ipsum pariatur sunt in reprehenderit ipsum duis officia voluptate adipisicing ad officia. Duis est sint mollit amet laborum magna non quis nulla ipsum in veniam sit. Amet velit consequat esse esse ea. Ipsum non do ut cillum in adipisicing labore non commodo do laborum sunt.",
-	    "comments": [5, 6]
-	}, {
-	    "id": "56c782f1978fdf9a0100df52",
-	    "date": "2016-06-03T15:03:23.000Z",
-	    "title": "Hello world title",
-	    "text": "Culpa dolor deserunt veniam irure amet officia excepteur labore nisi labore ad labore laborum aute. Ea irure sit exercitation ex. Aliquip dolore duis ullamco labore qui. Et anim irure laborum quis ipsum. Adipisicing culpa est ea velit veniam dolor nisi. Sit cupidatat velit commodo eu.\n\nUt nulla ut irure cillum irure sint sunt cupidatat tempor laboris incididunt elit occaecat fugiat. Reprehenderit enim cupidatat consectetur pariatur ad pariatur consequat veniam do fugiat Lorem laborum do velit. Nulla aute magna magna nisi officia et. Aute adipisicing eu eiusmod tempor exercitation sint non enim laboris dolor adipisicing.\n\nEa do sint pariatur voluptate ad culpa irure. Cillum pariatur deserunt fugiat elit. Exercitation labore amet deserunt magna. Velit veniam aute officia aliqua ipsum veniam pariatur. Aliquip ullamco fugiat officia non sunt ad consequat ipsum est esse commodo reprehenderit. Ad quis consectetur est exercitation fugiat eiusmod. Laborum reprehenderit esse qui irure.",
-	    "comments": [7]
-	}, {
-	    "id": "56c782f1e17f4f9311dfaa2c",
-	    "date": "2016-06-01T15:03:23.000Z",
-	    "title": "Voluptate est officia",
-	    "text": "Voluptate est officia pariatur tempor labore consequat consequat consectetur culpa enim. Amet laborum commodo in ullamco magna aliquip. Cupidatat veniam adipisicing labore irure nostrud sunt proident aute in. Sit Lorem consequat cillum enim id excepteur aliqua nostrud sint quis aute est est dolor. Sunt culpa est magna ad qui consequat exercitation. Enim sit ex do cupidatat laborum.\n\nOccaecat do tempor ex in dolor cupidatat do quis laboris anim. Et duis esse pariatur magna ex ipsum ut do ut id cillum. Nostrud fugiat sit minim ea. Nisi nulla sunt et et voluptate. Velit reprehenderit enim nulla mollit dolore excepteur Lorem do Lorem do cillum est qui. Ipsum mollit duis laboris incididunt non sit sunt proident. Aute voluptate id sunt aute proident officia.\n\nEnim ut nulla cillum officia cupidatat eiusmod amet laborum do labore id. Laborum in laboris aliquip anim consectetur magna reprehenderit consequat eiusmod esse Lorem consequat aliqua. Eiusmod voluptate mollit sint consectetur eu deserunt laboris ad et sunt nulla fugiat quis non. Dolor qui do cupidatat proident mollit amet sint pariatur non aliquip enim ex.",
-	    "comments": [8]
-	}, {
-	    "id": "56c782f197fe2bad471b3740",
-	    "date": "2016-06-07T15:03:23.000Z",
-	    "title": "Ex sunt sunt aliqua",
-	    "text": "Ex sunt sunt aliqua reprehenderit aliqua occaecat. Minim anim commodo officia veniam proident aute cillum eu sunt aute nostrud. Laboris fugiat velit ut pariatur occaecat adipisicing pariatur occaecat. Duis sint enim et consectetur quis pariatur laborum excepteur. Ipsum aliquip qui laborum commodo consectetur do velit veniam occaecat. Ad nisi dolor cillum elit magna dolor voluptate ea. Enim in duis ea consequat sunt Lorem aute.\n\nEst elit sunt quis officia reprehenderit do elit commodo eiusmod esse voluptate. Sit ipsum commodo sint voluptate culpa labore elit magna ullamco nostrud. Laboris magna magna anim labore mollit irure voluptate. Aute non magna aliqua aliqua sunt. Velit mollit consectetur aliqua id tempor ut. Tempor cupidatat aliquip excepteur occaecat incididunt nulla Lorem sint.\n\nNon commodo anim deserunt in et aliquip incididunt ut consectetur sunt esse commodo deserunt et. Tempor fugiat laboris cillum laboris labore. Deserunt quis ad do labore amet culpa officia. Esse et officia nostrud tempor occaecat officia anim incididunt amet sunt excepteur Lorem. Aute occaecat magna velit nisi sit anim consequat velit qui pariatur. Esse incididunt id officia aliqua anim ut et.",
-	    "comments": [9]
-	}, {
-	    "id": "56c782f1a2c2c3268ddb3206",
-	    "date": "2016-06-01T15:03:23.000Z",
-	    "title": "Commodo laborum sit nostru",
-	    "text": "Commodo laborum sit nostrud reprehenderit cupidatat officia laboris. Ipsum minim culpa in enim. Voluptate dolor ea irure nisi incididunt enim magna.\n\nCupidatat quis cillum velit culpa tempor esse irure nostrud ea consectetur officia fugiat irure qui. Enim quis officia do in. Velit veniam ipsum consequat aliqua duis voluptate. Minim nisi ex aute ad.\n\nNisi Lorem ex tempor adipisicing labore. Quis occaecat fugiat pariatur labore culpa cillum laboris. Labore occaecat ut laborum sit ex do sit. Deserunt consectetur elit aute laboris est deserunt officia ullamco sit laboris officia aliquip. Aliqua ut sunt nostrud voluptate excepteur quis incididunt Lorem ut.",
-	    "comments": []
-	}];
-	
-	var articles = exports.articles = [{
-	    "id": "56c782f18990ecf954f6e027",
-	    "date": "2016-06-09T15:03:23.000Z",
-	    "title": "Commodo qui incididunt",
-	    "text": "Commodo qui incididunt ex ut ea nulla et eu aliquip duis. Aute deserunt excepteur ullamco fugiat sunt aliquip exercitation do sint incididunt. Amet consectetur sint irure reprehenderit fugiat amet mollit. In commodo mollit ullamco cillum pariatur eiusmod cillum aute mollit. Culpa non sint eiusmod ad dolor velit dolore voluptate do adipisicing. Cupidatat sint est magna officia qui magna eu elit qui excepteur fugiat duis ex labore.\n\nAliquip veniam ad reprehenderit mollit exercitation id enim ut exercitation. Esse irure ipsum minim laborum reprehenderit irure ut. Tempor excepteur nisi nulla nostrud amet id cillum. Sint velit sint officia aliqua sint quis deserunt.\n\nAliquip dolor cillum deserunt enim nulla dolor amet irure cupidatat commodo laboris id aliqua. Labore aliqua adipisicing Lorem id adipisicing. Ad cupidatat et do anim ex commodo elit magna ad consequat. Nostrud sit eu laborum ut consequat fugiat aute culpa. Lorem tempor quis sunt ad consequat excepteur est. Enim voluptate cillum Lorem ex fugiat ea qui. Irure aute magna dolore eiusmod minim non ad anim dolore sint et.",
-	    "comments": [{
-	        "id": 0,
-	        "user": "Gilliam Underwood",
-	        "text": "Velit anim deserunt elit velit est fugiat duis eiusmod eu do incididunt ut tempor voluptate. Officia dolor aliqua id anim mollit pariatur id commodo. Laborum minim non ut aliquip commodo est consectetur. Mollit eu aliqua tempor est nulla ullamco irure. Sit non amet et eiusmod cillum ex cillum anim incididunt ad laboris mollit. Sunt quis incididunt elit ea qui non ullamco aliquip consequat voluptate eiusmod est. Irure laboris amet culpa sit aliquip."
-	    }, {
-	        "id": 1,
-	        "user": "Dolly Franklin",
-	        "text": "Aliquip id nostrud adipisicing irure. Labore reprehenderit ea ex officia ullamco incididunt consequat elit amet quis commodo. Fugiat amet veniam cillum ut aliquip velit est esse minim fugiat eiusmod sint. Commodo ea in culpa deserunt."
-	    }, {
-	        "id": 2,
-	        "title": "Hello world title",
-	        "user": "Brennan Atkins",
-	        "text": "Nisi sit nisi cillum dolor fugiat sint do nostrud ex cillum cupidatat. Culpa do duis non et excepteur labore dolor culpa qui tempor veniam. Ex labore deserunt qui sit aute ad incididunt do cupidatat eiusmod reprehenderit ad. Qui laborum qui voluptate velit et consectetur ipsum enim dolore minim. Est sint velit tempor reprehenderit. Qui consectetur ad minim consequat."
-	    }, {
-	        "id": 3,
-	        "user": "Jodi Humphrey",
-	        "text": "Non amet amet ut magna culpa dolore consequat occaecat. Commodo adipisicing laboris voluptate enim mollit mollit anim aliquip deserunt nostrud deserunt cillum est. Ad eu cupidatat dolor nostrud et minim id in dolor occaecat ad magna elit. Laboris elit laboris aliquip Lorem reprehenderit id amet reprehenderit laborum minim incididunt cupidatat eiusmod."
-	    }, {
-	        "id": 4,
-	        "user": "Joyce Weber",
-	        "text": "Non qui Lorem qui commodo sint in esse non aliqua pariatur mollit veniam. Elit labore ad nisi anim adipisicing tempor velit commodo adipisicing ipsum ut. Nostrud cillum aliquip adipisicing id do occaecat est eiusmod adipisicing duis. Magna dolore et non nisi in non cillum officia elit non esse proident irure aute. Proident mollit amet enim dolore eiusmod dolor qui. Eiusmod reprehenderit cillum sit deserunt nostrud enim duis excepteur. Excepteur pariatur sunt in ipsum id minim est mollit."
-	    }]
-	}, {
-	    "id": "56c782f17b4e0ba78c7ad717",
-	    "date": "2016-04-09T18:03:23.000Z",
-	    "title": "Quis occaecat",
-	    "text": "Quis occaecat duis aliqua reprehenderit excepteur nisi deserunt excepteur elit magna. Magna cillum anim veniam deserunt voluptate occaecat irure fugiat laboris proident. Tempor do magna deserunt cillum laborum cillum ut.\n\nEst sunt cupidatat in deserunt sit aliqua duis. Mollit consequat duis aliquip occaecat pariatur non do eiusmod dolore amet deserunt ullamco. Ea minim tempor exercitation do tempor nostrud dolor minim veniam laboris commodo ex duis. Do nostrud voluptate ullamco consequat anim tempor voluptate incididunt aliqua tempor.\n\nIn irure quis nostrud do. Labore laboris irure culpa reprehenderit pariatur laboris in commodo culpa enim cillum magna. Magna ipsum pariatur sunt in reprehenderit ipsum duis officia voluptate adipisicing ad officia. Duis est sint mollit amet laborum magna non quis nulla ipsum in veniam sit. Amet velit consequat esse esse ea. Ipsum non do ut cillum in adipisicing labore non commodo do laborum sunt.",
-	    "comments": [{
-	        "id": 5,
-	        "user": "Gilliam Underwood",
-	        "text": "Velit anim deserunt elit velit est fugiat duis eiusmod eu do incididunt ut tempor voluptate. Officia dolor aliqua id anim mollit pariatur id commodo. Laborum minim non ut aliquip commodo est consectetur. Mollit eu aliqua tempor est nulla ullamco irure. Sit non amet et eiusmod cillum ex cillum anim incididunt ad laboris mollit. Sunt quis incididunt elit ea qui non ullamco aliquip consequat voluptate eiusmod est. Irure laboris amet culpa sit aliquip."
-	    }, {
-	        "id": 6,
-	        "user": "Dolly Franklin",
-	        "text": "Aliquip id nostrud adipisicing irure. Labore reprehenderit ea ex officia ullamco incididunt consequat elit amet quis commodo. Fugiat amet veniam cillum ut aliquip velit est esse minim fugiat eiusmod sint. Commodo ea in culpa deserunt."
-	    }]
-	}, {
-	    "id": "56c782f1978fdf9a0100df52",
-	    "date": "2016-06-02T11:03:23.000Z",
-	    "title": "Hello my new world",
-	    "text": "Culpa dolor deserunt veniam irure amet officia excepteur labore nisi labore ad labore laborum aute. Ea irure sit exercitation ex. Aliquip dolore duis ullamco labore qui. Et anim irure laborum quis ipsum. Adipisicing culpa est ea velit veniam dolor nisi. Sit cupidatat velit commodo eu.\n\nUt nulla ut irure cillum irure sint sunt cupidatat tempor laboris incididunt elit occaecat fugiat. Reprehenderit enim cupidatat consectetur pariatur ad pariatur consequat veniam do fugiat Lorem laborum do velit. Nulla aute magna magna nisi officia et. Aute adipisicing eu eiusmod tempor exercitation sint non enim laboris dolor adipisicing.\n\nEa do sint pariatur voluptate ad culpa irure. Cillum pariatur deserunt fugiat elit. Exercitation labore amet deserunt magna. Velit veniam aute officia aliqua ipsum veniam pariatur. Aliquip ullamco fugiat officia non sunt ad consequat ipsum est esse commodo reprehenderit. Ad quis consectetur est exercitation fugiat eiusmod. Laborum reprehenderit esse qui irure.",
-	    "comments": [{
-	        "id": 7,
-	        "user": "Brennan Atkins",
-	        "text": "Nisi sit nisi cillum dolor fugiat sint do nostrud ex cillum cupidatat. Culpa do duis non et excepteur labore dolor culpa qui tempor veniam. Ex labore deserunt qui sit aute ad incididunt do cupidatat eiusmod reprehenderit ad. Qui laborum qui voluptate velit et consectetur ipsum enim dolore minim. Est sint velit tempor reprehenderit. Qui consectetur ad minim consequat."
-	    }]
-	}, {
-	    "id": "56c782f1e17f4f9311dfaa2c",
-	    "date": "2016-05-19T23:03:23.000Z",
-	    "title": "Voluptate est officia",
-	    "text": "Voluptate est officia pariatur tempor labore consequat consequat consectetur culpa enim. Amet laborum commodo in ullamco magna aliquip. Cupidatat veniam adipisicing labore irure nostrud sunt proident aute in. Sit Lorem consequat cillum enim id excepteur aliqua nostrud sint quis aute est est dolor. Sunt culpa est magna ad qui consequat exercitation. Enim sit ex do cupidatat laborum.\n\nOccaecat do tempor ex in dolor cupidatat do quis laboris anim. Et duis esse pariatur magna ex ipsum ut do ut id cillum. Nostrud fugiat sit minim ea. Nisi nulla sunt et et voluptate. Velit reprehenderit enim nulla mollit dolore excepteur Lorem do Lorem do cillum est qui. Ipsum mollit duis laboris incididunt non sit sunt proident. Aute voluptate id sunt aute proident officia.\n\nEnim ut nulla cillum officia cupidatat eiusmod amet laborum do labore id. Laborum in laboris aliquip anim consectetur magna reprehenderit consequat eiusmod esse Lorem consequat aliqua. Eiusmod voluptate mollit sint consectetur eu deserunt laboris ad et sunt nulla fugiat quis non. Dolor qui do cupidatat proident mollit amet sint pariatur non aliquip enim ex.",
-	    "comments": [{
-	        "id": 8,
-	        "user": "Jodi Humphrey",
-	        "text": "Non amet amet ut magna culpa dolore consequat occaecat. Commodo adipisicing laboris voluptate enim mollit mollit anim aliquip deserunt nostrud deserunt cillum est. Ad eu cupidatat dolor nostrud et minim id in dolor occaecat ad magna elit. Laboris elit laboris aliquip Lorem reprehenderit id amet reprehenderit laborum minim incididunt cupidatat eiusmod."
-	    }]
-	}, {
-	    "id": "56c782f197fe2bad471b3740",
-	    "date": "2016-06-04T15:03:23.000Z",
-	    "title": "Ex sunt sunt aliqua",
-	    "text": "Ex sunt sunt aliqua reprehenderit aliqua occaecat. Minim anim commodo officia veniam proident aute cillum eu sunt aute nostrud. Laboris fugiat velit ut pariatur occaecat adipisicing pariatur occaecat. Duis sint enim et consectetur quis pariatur laborum excepteur. Ipsum aliquip qui laborum commodo consectetur do velit veniam occaecat. Ad nisi dolor cillum elit magna dolor voluptate ea. Enim in duis ea consequat sunt Lorem aute.\n\nEst elit sunt quis officia reprehenderit do elit commodo eiusmod esse voluptate. Sit ipsum commodo sint voluptate culpa labore elit magna ullamco nostrud. Laboris magna magna anim labore mollit irure voluptate. Aute non magna aliqua aliqua sunt. Velit mollit consectetur aliqua id tempor ut. Tempor cupidatat aliquip excepteur occaecat incididunt nulla Lorem sint.\n\nNon commodo anim deserunt in et aliquip incididunt ut consectetur sunt esse commodo deserunt et. Tempor fugiat laboris cillum laboris labore. Deserunt quis ad do labore amet culpa officia. Esse et officia nostrud tempor occaecat officia anim incididunt amet sunt excepteur Lorem. Aute occaecat magna velit nisi sit anim consequat velit qui pariatur. Esse incididunt id officia aliqua anim ut et.",
-	    "comments": [{
-	        "id": 9,
-	        "user": "Joyce Weber",
-	        "text": "Non qui Lorem qui commodo sint in esse non aliqua pariatur mollit veniam. Elit labore ad nisi anim adipisicing tempor velit commodo adipisicing ipsum ut. Nostrud cillum aliquip adipisicing id do occaecat est eiusmod adipisicing duis. Magna dolore et non nisi in non cillum officia elit non esse proident irure aute. Proident mollit amet enim dolore eiusmod dolor qui. Eiusmod reprehenderit cillum sit deserunt nostrud enim duis excepteur. Excepteur pariatur sunt in ipsum id minim est mollit."
-	    }]
-	}, {
-	    "id": "56c782f1a2c2c3268ddb3206",
-	    "date": "2016-06-08T19:03:23.000Z",
-	    "title": "Commodo laborum sit nostru",
-	    "text": "Commodo laborum sit nostrud reprehenderit cupidatat officia laboris. Ipsum minim culpa in enim. Voluptate dolor ea irure nisi incididunt enim magna.\n\nCupidatat quis cillum velit culpa tempor esse irure nostrud ea consectetur officia fugiat irure qui. Enim quis officia do in. Velit veniam ipsum consequat aliqua duis voluptate. Minim nisi ex aute ad.\n\nNisi Lorem ex tempor adipisicing labore. Quis occaecat fugiat pariatur labore culpa cillum laboris. Labore occaecat ut laborum sit ex do sit. Deserunt consectetur elit aute laboris est deserunt officia ullamco sit laboris officia aliquip. Aliqua ut sunt nostrud voluptate excepteur quis incididunt Lorem ut."
-	}];
 
 /***/ },
 /* 233 */
@@ -24824,40 +24849,56 @@
 	Object.defineProperty(exports, "__esModule", {
 	    value: true
 	});
-	exports.default = selectionReducer;
 	
-	var _Constants = __webpack_require__(222);
-	
-	var _reactDayPicker = __webpack_require__(224);
-	
-	function selectionReducer(state, action) {
+	exports.default = function (state, action) {
 	    var type = action.type,
 	        payload = action.payload;
 	
 	
 	    switch (type) {
 	        case _Constants.DELETE_ARTICLE:
+	            var articlesIDs = state;
+	            articlesIDs.push(payload.id);
+	            return articlesIDs;
+	    }
 	
-	            var deletedArticles = state.deletedArticles.slice();
-	            deletedArticles.push(payload.id);
+	    return state;
+	};
 	
-	            return {
-	                deletedArticles: deletedArticles,
-	                range: {
-	                    from: state.from,
-	                    to: state.to
-	                }
-	            };
+	var _Constants = __webpack_require__(222);
+
+/***/ },
+/* 234 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
 	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	
+	exports.default = function (state, action) {
+	    var type = action.type,
+	        payload = action.payload;
+	
+	
+	    switch (type) {
 	        case _Constants.DAY_SELECTED:
+	            return _reactDayPicker.DateUtils.addDayToRange(payload.day, state);
+	
+	        case _Constants.DAY_RESET:
 	            return {
-	                deletedArticles: state.deletedArticles,
-	                range: _reactDayPicker.DateUtils.addDayToRange(payload.day, state.range)
+	                from: null,
+	                to: null
 	            };
 	    }
 	
 	    return state;
-	}
+	};
+	
+	var _Constants = __webpack_require__(222);
+	
+	var _reactDayPicker = __webpack_require__(226);
 
 /***/ }
 /******/ ]);
