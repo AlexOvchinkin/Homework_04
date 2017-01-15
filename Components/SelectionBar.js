@@ -3,7 +3,6 @@ import DayPicker, {DateUtils} from 'react-day-picker';
 import {MONTH, WEEKDAYS_LONG, WEEKDAYS_SHORT} from '../Constants';
 import {daySelected, dayReset} from '../AC';
 import {connect} from 'react-redux';
-import Select from 'react-select';
 
 import 'react-day-picker/lib/style.css';
 
