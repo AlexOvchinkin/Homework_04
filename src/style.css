@@ -12,13 +12,10 @@ h2 {
 }
 
 .selection_bar {
-    height: 400px;
     margin: 5px;
-    border-radius: 5px;
-    box-shadow: 0 0 10px 0 gray;
     display: flex;
     flex-direction: column;
-    justify-content: space-around;
+    justify-content: flex-start;
     align-items: center;
 }
 
@@ -27,12 +24,6 @@ h2 {
     color: gray;
     font-style: italic;
     font-size: 24px;
-}
-
-.selection {
-    height: 40px;
-    width: 300px;
-    border: 1px dashed black;
 }
 
 .article_list {
@@ -87,9 +78,20 @@ h2 {
     margin-top: 0;
 }
 
+.comment_form {
+    margin: 10px 0;
+    display: flex;
+    justify-content: flex-end;
+}
 
+.comment_form input,
+.comment_form button {
+    margin-left: 10px;
+}
 
-
+.comment_form input:nth-of-type(2) {
+    width: 350px;
+}
 
 
 

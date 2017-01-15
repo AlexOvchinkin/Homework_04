@@ -1,8 +1,10 @@
 import React from 'react';
 import {connect} from 'react-redux';
 import Article from './Article';
-import {articles} from '../src/fixtures';
+import { normalizedArticles } from '../src/fixtures';
 import {inArray, inRange, inSelected} from '../Filters';
+
+import 'react-select/dist/react-select.css';
 
 class ArticleList extends React.Component {
 
@@ -23,10 +25,10 @@ class ArticleList extends React.Component {
 export default connect(state => {
     return {
         articles: (function (state) {
-            return articles.filter( article =>
+            return normalizedArticles.filter( article =>
             !inArray(article, state.deletedArticles) &&
             inRange(article.date, state.range) &&
-            inSelected() );
+            inSelected() ); // заглушка - селектор еще не реализовал
         })(state)
     }
 })(ArticleList);

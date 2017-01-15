@@ -1,13 +1,21 @@
 import React from 'react';
 import CommentsList from './CommentsList';
-import { deleteArticle } from '../AC';
-import { connect } from 'react-redux';
+import {deleteArticle} from '../AC';
+import {connect} from 'react-redux';
 
 class Article extends React.Component {
 
     render() {
 
         let article = this.props.article;
+
+
+        let comments = article.comments ?
+            article.comments.map(item => {
+                return this.props.allComments.get(item)
+            }) :
+            null;
+
 
         return (
             <article className="article">
@@ -17,7 +25,7 @@ class Article extends React.Component {
                     <p className="article_date">{ article.date }</p>
                     <p className="article_text">{ article.text }</p>
                 </div>
-                <CommentsList comments={ article.comments }/>
+                <CommentsList comments={ comments } article={ article }/>
             </article>
         )
     };
@@ -28,4 +36,8 @@ class Article extends React.Component {
 
 }
 
-export default connect(null, { deleteArticle })(Article);
+export default connect(state => {
+    return {
+        allComments: state.comments
+    }
+}, {deleteArticle})(Article);
