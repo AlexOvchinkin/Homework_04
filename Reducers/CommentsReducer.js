@@ -6,7 +6,7 @@ export default function (state, action) {
 
     switch (type) {
         case COMMENT_ADDED:
-
+            //нет, нельзя мутировать стейт! тем более чужого редюсера
             payload.article.comments.push(payload.id);
 
             return state.set(payload.id, new record({
