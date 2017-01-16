@@ -5,6 +5,7 @@ export const DAY_SELECTED = 'DAY_SELECTED';
 export const DAY_RESET = 'DAY_RESET';
 export const COMMENT_ADDED = 'COMMENT_ADDED';
 
+//почему в constants?
 export const record = new Record({
     id: '',
     text: '',
